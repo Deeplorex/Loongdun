@@ -1,5 +1,14 @@
 # Product changes
 
+## 2026-10-12 — In-app password generator with security-first rules
+
+- Type: `requirement`
+- The credential editor now offers a password generator on user-chosen secret fields (website/database login passwords, server key passphrases, file passphrases, and sensitive custom fields); provider-issued secrets such as TOTP seeds, backup codes, and API keys stay manually typed.
+- Rules are configurable in the generator panel: length 8–128, lowercase/uppercase/digit/symbol sets, look-alike character exclusion (l, 1, I, 0, O, o), and at-least-one-character-per-set; an entropy estimate with strength wording is shown for the current preview.
+- Generation lives in Rust (`src-tauri/src/generator.rs`) on the existing `getrandom` operating-system CSPRNG with byte-level rejection sampling (no modulo bias) and whole-password resampling for the per-set guarantee; internal buffers are zeroized and nothing is logged or stored as history. Exposed as the session-independent `generate_password` IPC command; no new dependencies.
+- Last-used rules persist in vault settings (`passwordGenerator` in `settings.json`, serde default, no migration) and are revalidated by `save_settings`; the `?demo` dev mode mirrors the same rules with WebCrypto.
+- Tests: `src-tauri/src/generator.rs` covers rule compliance, ambiguous exclusion, invalid-rule rejection, entropy math and sample distinctness; `src-tauri/src/vault.rs` covers settings validation; `src/components/PasswordGeneratorPanel.test.tsx` covers generation on open, rule-change regeneration, apply-and-persist, persistence failure and the empty-charset guard; `src/components/AssetEditor.test.tsx` covers field scoping and fill-and-save.
+
 ## 2026-10-08 — Install a blocking commit quality gate
 
 - Type: `maintenance`

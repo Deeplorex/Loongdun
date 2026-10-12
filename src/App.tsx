@@ -4,6 +4,7 @@ import { AssetEditor } from "./components/AssetEditor";
 import { AssetList } from "./components/AssetList";
 import { DetailPanel } from "./components/DetailPanel";
 import { GraphView } from "./components/GraphView";
+import { DEFAULT_GENERATOR_RULES } from "./components/PasswordGeneratorPanel";
 import { ProjectPanel } from "./components/ProjectPanel";
 import { RecoveryKeyDialog } from "./components/RecoveryKeyDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
@@ -25,6 +26,7 @@ import type {
   GraphData,
   GraphNode,
   InitializeVaultResult,
+  PasswordGeneratorOptions,
   Project,
   ProjectInput,
   ServiceInput,
@@ -40,6 +42,7 @@ const DEFAULT_SETTINGS: VaultSettings = {
   autoLockMinutes: 5,
   revealSeconds: 30,
   clipboardSeconds: 30,
+  passwordGenerator: DEFAULT_GENERATOR_RULES,
 };
 const EMPTY_GRAPH: GraphData = { nodes: [], edges: [] };
 
@@ -299,6 +302,13 @@ export default function App() {
         await refresh(saved.summary.id);
       },
       input.id ? t("凭证已更新") : t("凭证已保存"),
+    );
+
+  const saveGeneratorRules = async (rules: PasswordGeneratorOptions) =>
+    run(
+      async () => setSettings(await api.saveSettings({ ...settings, passwordGenerator: rules })),
+      undefined,
+      false,
     );
 
   const editAsset = async (id: string) =>
@@ -613,6 +623,8 @@ export default function App() {
           projects={projects}
           assets={assetsIndex}
           folders={folders}
+          generatorRules={settings.passwordGenerator}
+          onGeneratorRulesSave={saveGeneratorRules}
           onCancel={() => setEditor(false)}
           onSave={saveAsset}
         />

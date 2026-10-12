@@ -243,9 +243,25 @@ export interface RevealResult {
   expiresInSeconds: number;
 }
 
+export interface PasswordGeneratorOptions {
+  length: number;
+  lowercase: boolean;
+  uppercase: boolean;
+  digits: boolean;
+  symbols: boolean;
+  excludeAmbiguous: boolean;
+  requireEachSet: boolean;
+}
+
+export interface GeneratedPassword {
+  value: string;
+  entropyBits: number;
+}
+
 export interface VaultSettings {
   autoBackupHours?: number;
   autoBackupDirectory?: string;
+  passwordGenerator?: PasswordGeneratorOptions;
   theme: ThemePreference;
   language: LanguagePreference;
   closeBehavior?: "exit" | "tray";

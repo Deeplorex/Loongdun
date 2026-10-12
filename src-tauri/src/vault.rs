@@ -16,6 +16,7 @@ use crate::{
         unlock_envelope, wrap_key,
     },
     error::{AppError, AppResult},
+    generator,
     models::{InitializeVaultResult, RevealResult, VaultSettings, VaultStatus},
     platform,
     storage::{self, initialize_database, migrate, open_encrypted},
@@ -336,6 +337,7 @@ impl AppState {
     }
 
     pub fn save_settings(&self, settings: VaultSettings) -> AppResult<VaultSettings> {
+        generator::validate(&settings.password_generator)?;
         if ![0, 1, 24, 168].contains(&settings.auto_backup_hours)
             || (!settings.auto_backup_directory.is_empty()
                 && !Path::new(&settings.auto_backup_directory).is_absolute())
@@ -378,7 +380,7 @@ impl AppState {
 
 #[cfg(test)]
 mod tests {
-    use crate::models::{AssetInput, AssetKind, SecretFieldInput};
+    use crate::models::{AssetInput, AssetKind, PasswordGeneratorOptions, SecretFieldInput};
 
     use super::*;
 
@@ -505,5 +507,26 @@ mod tests {
                 })
                 .is_err()
         );
+    }
+
+    #[test]
+    fn settings_reject_invalid_generator_rules() {
+        let root = tempfile::tempdir().unwrap();
+        let state = AppState::new(root.path().join("config"));
+        state
+            .initialize(root.path().join("vault"), "test-password")
+            .unwrap();
+        assert!(
+            state
+                .save_settings(VaultSettings {
+                    password_generator: PasswordGeneratorOptions {
+                        length: 4,
+                        ..PasswordGeneratorOptions::default()
+                    },
+                    ..VaultSettings::default()
+                })
+                .is_err()
+        );
+        state.save_settings(VaultSettings::default()).unwrap();
     }
 }

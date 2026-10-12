@@ -11,8 +11,10 @@ import type {
   EnvironmentInput,
   Folder,
   FolderInput,
+  GeneratedPassword,
   GraphData,
   InitializeVaultResult,
+  PasswordGeneratorOptions,
   Project,
   ProjectInput,
   RevealResult,
@@ -46,6 +48,8 @@ const tauriApi = {
   changeMasterPassword: (currentPassword: string, nextPassword: string) =>
     invoke<void>("change_master_password", { currentPassword, nextPassword }),
   rotateRecoveryKey: () => invoke<string>("rotate_recovery_key"),
+  generatePassword: (options: PasswordGeneratorOptions) =>
+    invoke<GeneratedPassword>("generate_password", { options }),
 
   listAssets: (filter: AssetQuery) => invoke<AssetSummary[]>("list_assets", { filter }),
   getAsset: (assetId: string) => invoke<AssetDetail>("get_asset", { assetId }),

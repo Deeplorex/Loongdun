@@ -6,7 +6,9 @@ import type {
   AssetSummary,
   Environment,
   Folder,
+  GeneratedPassword,
   GraphData,
+  PasswordGeneratorOptions,
   Project,
   Service,
   UsageBinding,
@@ -325,6 +327,51 @@ function graphData(): GraphData {
   return { nodes, edges };
 }
 
+// Demo-only mirror of the Rust generator so `?demo` mode renders the same rules.
+const DEMO_LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+const DEMO_UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const DEMO_DIGITS = "0123456789";
+const DEMO_SYMBOLS = "!@#$%^&*()[]{}?.~_+-=";
+const DEMO_AMBIGUOUS = new Set("il1I|0Oo");
+
+function demoGeneratePassword(options: PasswordGeneratorOptions): GeneratedPassword {
+  const sets = (
+    [
+      [options.lowercase, DEMO_LOWERCASE],
+      [options.uppercase, DEMO_UPPERCASE],
+      [options.digits, DEMO_DIGITS],
+      [options.symbols, DEMO_SYMBOLS],
+    ] as const
+  )
+    .filter(([enabled]) => enabled)
+    .map(([, characters]) => characters)
+    .map((characters) =>
+      options.excludeAmbiguous
+        ? [...characters].filter((character) => !DEMO_AMBIGUOUS.has(character)).join("")
+        : characters,
+    );
+  const pool = sets.join("");
+  if (!pool) throw new Error("至少需要选择一类字符");
+  const usable = 256 - (256 % pool.length);
+  const random = new Uint8Array(64);
+  const sampleOnce = () => {
+    const picked: string[] = [];
+    while (picked.length < options.length) {
+      crypto.getRandomValues(random);
+      for (const byte of random) {
+        if (picked.length >= options.length) break;
+        if (byte < usable) picked.push(pool[byte % pool.length]);
+      }
+    }
+    return picked.join("");
+  };
+  let value = sampleOnce();
+  while (options.requireEachSet && !sets.every((set) => [...value].some((c) => set.includes(c)))) {
+    value = sampleOnce();
+  }
+  return { value, entropyBits: options.length * Math.log2(pool.length) };
+}
+
 export function createDemoApi() {
   return {
     vaultStatus: async () => clone(status),
@@ -354,6 +401,7 @@ export function createDemoApi() {
     },
     changeMasterPassword: async () => undefined,
     rotateRecoveryKey: async () => "RHIZOME-DEMO-NEW-RECOVERY-KEY",
+    generatePassword: async (options: PasswordGeneratorOptions) => demoGeneratePassword(options),
     listAssets: async (filter: AssetQuery) => {
       const query = filter.query?.trim().toLocaleLowerCase("zh-CN");
       return assets

@@ -14,6 +14,8 @@ const contracts = [
   "UsageBinding",
   "GraphData",
   "VaultStatus",
+  "PasswordGeneratorOptions",
+  "GeneratedPassword",
 ];
 
 const missing = contracts.filter((name) => !rust.includes(name) || !typescript.includes(name));

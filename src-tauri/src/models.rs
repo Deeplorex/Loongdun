@@ -406,11 +406,46 @@ pub struct RevealResult {
     pub expires_in_seconds: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasswordGeneratorOptions {
+    pub length: u32,
+    pub lowercase: bool,
+    pub uppercase: bool,
+    pub digits: bool,
+    pub symbols: bool,
+    pub exclude_ambiguous: bool,
+    pub require_each_set: bool,
+}
+
+impl Default for PasswordGeneratorOptions {
+    fn default() -> Self {
+        Self {
+            length: 20,
+            lowercase: true,
+            uppercase: true,
+            digits: true,
+            symbols: true,
+            exclude_ambiguous: true,
+            require_each_set: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GeneratedPassword {
+    pub value: String,
+    pub entropy_bits: f64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultSettings {
     #[serde(default = "default_backup_interval")]
     pub auto_backup_hours: u32,
+    #[serde(default)]
+    pub password_generator: PasswordGeneratorOptions,
     #[serde(default)]
     pub auto_backup_directory: String,
     pub theme: String,
@@ -440,6 +475,7 @@ impl Default for VaultSettings {
         Self {
             auto_backup_hours: default_backup_interval(),
             auto_backup_directory: String::new(),
+            password_generator: PasswordGeneratorOptions::default(),
             theme: "system".into(),
             language: default_language(),
             close_behavior: default_close_behavior(),
@@ -461,7 +497,7 @@ pub struct BackupInspection {
 
 #[cfg(test)]
 mod tests {
-    use super::VaultSettings;
+    use super::{PasswordGeneratorOptions, VaultSettings};
 
     #[test]
     fn settings_created_before_language_support_follow_the_system() {
@@ -474,5 +510,9 @@ mod tests {
         assert!(settings.auto_backup_directory.is_empty());
         assert_eq!(settings.language, "system");
         assert_eq!(settings.close_behavior, "exit");
+        assert_eq!(
+            settings.password_generator,
+            PasswordGeneratorOptions::default()
+        );
     }
 }

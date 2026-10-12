@@ -3,10 +3,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { emptyAsset, SERVER_AUTH_LABELS } from "../lib/assetTemplates";
+import { api } from "../lib/commands";
 import type { AssetInput } from "../types";
 import { AssetEditor } from "./AssetEditor";
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
+vi.mock("../lib/commands", () => ({ api: { generatePassword: vi.fn() } }));
 
 describe("AssetEditor", () => {
   it("selects a key file and retains the saved asset ID when attachment import needs retry", async () => {
@@ -215,5 +217,53 @@ describe("AssetEditor", () => {
     );
     expect(saved.fields.some((item) => item.key === "private_key")).toBe(true);
     expect(saved.fields.some((item) => item.key === "password")).toBe(false);
+  });
+
+  it("generates a password into the field and persists the chosen rules", async () => {
+    const mocked = vi.mocked(api.generatePassword);
+    mocked.mockResolvedValue({ value: "Tr0ub4dor&3xample!", entropyBits: 128 });
+    const generatorRules = {
+      length: 24,
+      lowercase: true,
+      uppercase: true,
+      digits: true,
+      symbols: true,
+      excludeAmbiguous: true,
+      requireEachSet: true,
+    };
+    const onGeneratorRulesSave = vi.fn().mockResolvedValue(undefined);
+    const onSave = vi.fn<(input: AssetInput) => Promise<void>>().mockResolvedValue(undefined);
+    render(
+      <AssetEditor
+        initial={emptyAsset("web_account")}
+        assets={[]}
+        folders={[]}
+        generatorRules={generatorRules}
+        onGeneratorRulesSave={onGeneratorRulesSave}
+        onCancel={vi.fn()}
+        onSave={onSave}
+      />,
+    );
+
+    // Only the user-chosen password field offers generation, not provider-issued secrets.
+    expect(screen.getAllByRole("button", { name: "生成密码" })).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "生成密码" }));
+    expect(mocked).toHaveBeenCalledWith(generatorRules);
+    expect(await screen.findByText("Tr0ub4dor&3xample!")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "生成并填入" }));
+    expect(screen.getByLabelText("密码")).toHaveValue("Tr0ub4dor&3xample!");
+    expect(onGeneratorRulesSave).toHaveBeenCalledWith(generatorRules);
+    expect(screen.queryByText("Tr0ub4dor&3xample!")).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByRole("textbox", { name: "名称 *" }), "个人账号");
+    await userEvent.click(screen.getByRole("button", { name: "保存凭证" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
+    expect(onSave.mock.calls[0][0].fields).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "password", value: "Tr0ub4dor&3xample!" }),
+      ]),
+    );
   });
 });

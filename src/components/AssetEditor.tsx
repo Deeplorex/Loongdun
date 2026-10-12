@@ -1,10 +1,12 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { Eye, EyeOff, Plus, Star, Trash2, X } from "lucide-react";
+import { Dices, Eye, EyeOff, Plus, Star, Trash2, X } from "lucide-react";
 import { type FormEvent, useEffect, useId, useState } from "react";
 import { AssetLinksEditor } from "./AssetLinksEditor";
+import { DEFAULT_GENERATOR_RULES, PasswordGeneratorPanel } from "./PasswordGeneratorPanel";
 import {
   emptyAsset,
   FIELD_TEMPLATES,
+  GENERATABLE_FIELD_KEYS,
   getServerAuthMethod,
   KIND_LABELS,
   SERVER_AUTH_LABELS,
@@ -20,6 +22,7 @@ import type {
   AssetKind,
   AssetSummary,
   Folder,
+  PasswordGeneratorOptions,
   SecretFieldInput,
   Project,
 } from "../types";
@@ -29,6 +32,8 @@ interface AssetEditorProps {
   initial?: AssetInput | null;
   assets: AssetSummary[];
   folders: Folder[];
+  generatorRules?: PasswordGeneratorOptions;
+  onGeneratorRulesSave?: (rules: PasswordGeneratorOptions) => Promise<void>;
   onCancel: () => void;
   onSave: (
     input: AssetInput,
@@ -124,6 +129,8 @@ export function AssetEditor({
   assets,
   folders,
   projects = [],
+  generatorRules,
+  onGeneratorRulesSave,
   onCancel,
   onSave,
 }: AssetEditorProps) {
@@ -131,6 +138,7 @@ export function AssetEditor({
   const titleId = useId();
   const [draft, setDraft] = useState<AssetInput>(() => initial || emptyAsset());
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [generatorField, setGeneratorField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [sourcePath, setSourcePath] = useState("");
@@ -195,7 +203,28 @@ export function AssetEditor({
   const changeServerAuthMethod = (method: ServerAuthMethod) => {
     setDraft((current) => switchServerAuthMethod(current, method));
     setRevealed(new Set());
+    setGeneratorField(null);
   };
+  const generatorPanel = (fieldKey: string, applyValue: (value: string) => void) =>
+    generatorField === fieldKey ? (
+      <PasswordGeneratorPanel
+        rules={generatorRules ?? DEFAULT_GENERATOR_RULES}
+        onApply={applyValue}
+        onPersistRules={onGeneratorRulesSave ?? (async () => undefined)}
+        onClose={() => setGeneratorField(null)}
+      />
+    ) : null;
+  const generateButton = (fieldKey: string) => (
+    <button
+      type="button"
+      className="secret-input__generate"
+      onClick={() => setGeneratorField((current) => (current === fieldKey ? null : fieldKey))}
+      aria-label={t("生成密码")}
+      aria-expanded={generatorField === fieldKey}
+    >
+      <Dices size={16} />
+    </button>
+  );
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!valid) return;
@@ -497,7 +526,7 @@ export function AssetEditor({
                   {serverAuthMethod === "password" ? (
                     <div className="field-group span-two">
                       <span>{t("登录密码")}</span>
-                      <div className="secret-input">
+                      <div className="secret-input secret-input--generatable">
                         <input
                           type={revealed.has("password") ? "text" : "password"}
                           value={fieldValue("password")}
@@ -507,6 +536,7 @@ export function AssetEditor({
                           onChange={(event) => updateFieldValue("password", event.target.value)}
                           aria-label={t("登录密码")}
                         />
+                        {generateButton("password")}
                         <button
                           type="button"
                           onClick={() => toggleReveal("password")}
@@ -517,6 +547,7 @@ export function AssetEditor({
                           {revealed.has("password") ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
+                      {generatorPanel("password", (value) => updateFieldValue("password", value))}
                     </div>
                   ) : (
                     <>
@@ -557,7 +588,7 @@ export function AssetEditor({
                       </div>
                       <div className="field-group span-two">
                         <span>{t("密钥口令（可选）")}</span>
-                        <div className="secret-input">
+                        <div className="secret-input secret-input--generatable">
                           <input
                             type={revealed.has("key_passphrase") ? "text" : "password"}
                             value={fieldValue("key_passphrase")}
@@ -569,6 +600,7 @@ export function AssetEditor({
                             }
                             aria-label={t("密钥口令")}
                           />
+                          {generateButton("key_passphrase")}
                           <button
                             type="button"
                             onClick={() => toggleReveal("key_passphrase")}
@@ -583,6 +615,9 @@ export function AssetEditor({
                             )}
                           </button>
                         </div>
+                        {generatorPanel("key_passphrase", (value) =>
+                          updateFieldValue("key_passphrase", value),
+                        )}
                       </div>
                     </>
                   )}
@@ -601,65 +636,74 @@ export function AssetEditor({
                 aria-label={t("{kind}标准字段", { kind: t(KIND_LABELS[draft.kind]) })}
               >
                 {standardFields.map((item) => (
-                  <label key={item.key} htmlFor={`${titleId}-standard-${item.key}`}>
-                    <span>{t(item.label)}</span>
-                    {STANDARD_FIELD_OPTIONS[item.key] ? (
-                      <select
-                        id={`${titleId}-standard-${item.key}`}
-                        value={item.value}
-                        name={`standard-${item.key}`}
-                        onChange={(event) => updateFieldValue(item.key, event.target.value)}
-                      >
-                        <option value="">{t("未选择")}</option>
-                        {item.value && !STANDARD_FIELD_OPTIONS[item.key]?.includes(item.value) && (
-                          <option value={item.value}>
-                            {item.value} ({t("已有值")})
-                          </option>
-                        )}
-                        {STANDARD_FIELD_OPTIONS[item.key]?.map((option) => (
-                          <option key={option} value={option}>
-                            {t(option)}
-                          </option>
-                        ))}
-                      </select>
-                    ) : item.sensitive ? (
-                      <div className="secret-input">
+                  <div className="field-slot" key={item.key}>
+                    <label htmlFor={`${titleId}-standard-${item.key}`}>
+                      <span>{t(item.label)}</span>
+                      {STANDARD_FIELD_OPTIONS[item.key] ? (
+                        <select
+                          id={`${titleId}-standard-${item.key}`}
+                          value={item.value}
+                          name={`standard-${item.key}`}
+                          onChange={(event) => updateFieldValue(item.key, event.target.value)}
+                        >
+                          <option value="">{t("未选择")}</option>
+                          {item.value &&
+                            !STANDARD_FIELD_OPTIONS[item.key]?.includes(item.value) && (
+                              <option value={item.value}>
+                                {item.value} ({t("已有值")})
+                              </option>
+                            )}
+                          {STANDARD_FIELD_OPTIONS[item.key]?.map((option) => (
+                            <option key={option} value={option}>
+                              {t(option)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : item.sensitive ? (
+                        <div
+                          className={`secret-input ${
+                            GENERATABLE_FIELD_KEYS.has(item.key) ? "secret-input--generatable" : ""
+                          }`}
+                        >
+                          <input
+                            id={`${titleId}-standard-${item.key}`}
+                            type={revealed.has(item.key) ? "text" : "password"}
+                            value={item.value}
+                            name={`standard-${item.key}`}
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder={t(FIELD_PLACEHOLDERS[item.key])}
+                            onChange={(event) => updateFieldValue(item.key, event.target.value)}
+                          />
+                          {GENERATABLE_FIELD_KEYS.has(item.key) && generateButton(item.key)}
+                          <button
+                            type="button"
+                            onClick={() => toggleReveal(item.key)}
+                            aria-label={
+                              revealed.has(item.key)
+                                ? t("隐藏 {label}", { label: t(item.label) })
+                                : t("显示 {label}", { label: t(item.label) })
+                            }
+                          >
+                            {revealed.has(item.key) ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      ) : (
                         <input
                           id={`${titleId}-standard-${item.key}`}
-                          type={revealed.has(item.key) ? "text" : "password"}
+                          type={item.key === "login_url" ? "url" : "text"}
                           value={item.value}
                           name={`standard-${item.key}`}
                           autoComplete="off"
                           spellCheck={false}
+                          inputMode={item.key === "port" ? "numeric" : undefined}
                           placeholder={t(FIELD_PLACEHOLDERS[item.key])}
                           onChange={(event) => updateFieldValue(item.key, event.target.value)}
                         />
-                        <button
-                          type="button"
-                          onClick={() => toggleReveal(item.key)}
-                          aria-label={
-                            revealed.has(item.key)
-                              ? t("隐藏 {label}", { label: t(item.label) })
-                              : t("显示 {label}", { label: t(item.label) })
-                          }
-                        >
-                          {revealed.has(item.key) ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    ) : (
-                      <input
-                        id={`${titleId}-standard-${item.key}`}
-                        type={item.key === "login_url" ? "url" : "text"}
-                        value={item.value}
-                        name={`standard-${item.key}`}
-                        autoComplete="off"
-                        spellCheck={false}
-                        inputMode={item.key === "port" ? "numeric" : undefined}
-                        placeholder={t(FIELD_PLACEHOLDERS[item.key])}
-                        onChange={(event) => updateFieldValue(item.key, event.target.value)}
-                      />
-                    )}
-                  </label>
+                      )}
+                    </label>
+                    {generatorPanel(item.key, (value) => updateFieldValue(item.key, value))}
+                  </div>
                 ))}
               </section>
             )}
@@ -715,7 +759,11 @@ export function AssetEditor({
                         onChange={(event) => updateField(index, { label: event.target.value })}
                         aria-label={t("字段 {number} 名称", { number: index + 1 })}
                       />
-                      <div className="secret-input">
+                      <div
+                        className={`secret-input ${
+                          item.sensitive ? "secret-input--generatable" : ""
+                        }`}
+                      >
                         <input
                           type={item.sensitive && !revealed.has(item.key) ? "password" : "text"}
                           value={item.value}
@@ -725,6 +773,7 @@ export function AssetEditor({
                           onChange={(event) => updateField(index, { value: event.target.value })}
                           aria-label={item.label}
                         />
+                        {item.sensitive && generateButton(item.key)}
                         {item.sensitive && (
                           <button
                             type="button"
@@ -758,6 +807,8 @@ export function AssetEditor({
                       >
                         <Trash2 size={15} />
                       </button>
+                      {item.sensitive &&
+                        generatorPanel(item.key, (value) => updateField(index, { value }))}
                     </div>
                   ))}
                 </div>

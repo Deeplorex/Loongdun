@@ -4581,3 +4581,111 @@ button {
   overflow: auto;
   font-size: 12px;
 }
+
+.secret-input--generatable input {
+  padding-right: 64px;
+}
+.secret-input .secret-input__generate {
+  right: 31px;
+}
+.standard-field-editor .field-slot {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+.secret-field-row__generator {
+  grid-column: 1 / -1;
+}
+.generator-panel {
+  display: grid;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  gap: 10px;
+}
+.generator-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.generator-panel__actions {
+  display: flex;
+  gap: 2px;
+}
+.generator-panel__actions button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  color: var(--text-muted);
+  background: transparent;
+  place-items: center;
+}
+.generator-panel__actions button:hover:not(:disabled) {
+  color: var(--ink);
+}
+.generator-panel__length {
+  display: grid;
+  color: var(--ink-soft);
+  font-size: 11px;
+  gap: 4px;
+}
+.generator-panel__length label {
+  display: flex;
+  align-items: baseline;
+  font-weight: 600;
+  justify-content: space-between;
+}
+.generator-panel__length output {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.generator-panel__length input[type="range"] {
+  height: 22px;
+  padding: 0;
+  accent-color: var(--forest);
+}
+.generator-panel__sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.generator-check {
+  display: flex;
+  align-items: center;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 500;
+  gap: 6px;
+}
+.generator-check input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--forest);
+}
+.generator-panel__preview {
+  display: block;
+  min-height: 18px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.generator-panel__entropy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.generator-panel__footer {
+  display: flex;
+  justify-content: flex-end;
+}

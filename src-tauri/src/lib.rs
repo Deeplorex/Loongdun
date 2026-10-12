@@ -2,6 +2,7 @@ mod backup;
 mod commands;
 mod crypto;
 mod error;
+mod generator;
 mod models;
 mod platform;
 mod storage;
@@ -82,6 +83,7 @@ pub fn run() {
             commands::lock_vault,
             commands::change_master_password,
             commands::rotate_recovery_key,
+            commands::generate_password,
             commands::list_assets,
             commands::get_asset,
             commands::get_asset_for_edit,

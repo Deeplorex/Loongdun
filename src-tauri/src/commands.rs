@@ -5,11 +5,13 @@ use tauri::State;
 use crate::{
     backup,
     error::{CommandResult, command},
+    generator,
     models::{
         AssetDetail, AssetFilter, AssetInput, AssetRelation, AssetRelationInput, AssetSummary,
-        BackupInspection, Environment, EnvironmentInput, Folder, FolderInput, GraphData,
-        InitializeVaultResult, Project, ProjectInput, RevealResult, Service, ServiceInput,
-        UsageBinding, UsageBindingInput, VaultSettings, VaultStatus,
+        BackupInspection, Environment, EnvironmentInput, Folder, FolderInput, GeneratedPassword,
+        GraphData, InitializeVaultResult, PasswordGeneratorOptions, Project, ProjectInput,
+        RevealResult, Service, ServiceInput, UsageBinding, UsageBindingInput, VaultSettings,
+        VaultStatus,
     },
     platform, storage,
     vault::AppState,
@@ -78,6 +80,13 @@ pub async fn change_master_password(
 #[tauri::command]
 pub async fn rotate_recovery_key(state: State<'_, AppState>) -> CommandResult<String> {
     command(state.rotate_recovery_key())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn generate_password(
+    options: PasswordGeneratorOptions,
+) -> CommandResult<GeneratedPassword> {
+    command(generator::generate(&options))
 }
 
 #[tauri::command]

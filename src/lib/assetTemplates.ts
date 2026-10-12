@@ -56,6 +56,11 @@ export const SERVER_MANAGED_FIELD_KEYS = new Set([
   "key_passphrase",
 ]);
 
+// Standard fields whose value the user chooses themselves, so the in-app
+// password generator is offered for them; provider-issued secrets (TOTP,
+// backup codes, API keys…) are typed in manually.
+export const GENERATABLE_FIELD_KEYS = new Set(["password", "key_passphrase", "passphrase"]);
+
 export const FIELD_TEMPLATES: Record<AssetKind, SecretFieldInput[]> = {
   web_account: [
     field("username", "用户名", false),
