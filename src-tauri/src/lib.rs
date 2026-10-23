@@ -1,4 +1,5 @@
 mod backup;
+mod branding;
 mod commands;
 mod crypto;
 mod error;
@@ -25,18 +26,22 @@ pub fn run() {
             let config_dir = app.path().app_config_dir()?;
             std::fs::create_dir_all(&config_dir)?;
             app.manage(vault::AppState::new(config_dir));
-            let open = tauri::menu::MenuItem::with_id(
-                app,
-                "open",
-                "打开 / Open Rhizome",
-                true,
-                None::<&str>,
-            )?;
+            let ui_language = branding::user_default_ui_language();
+            let app_name = branding::app_display_name(ui_language);
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_title(app_name);
+            }
+            let open_label = if branding::is_chinese_ui_language(ui_language) {
+                "打开龙盾 / Open"
+            } else {
+                "打开 / Open Rhizome"
+            };
+            let open = tauri::menu::MenuItem::with_id(app, "open", open_label, true, None::<&str>)?;
             let exit =
                 tauri::menu::MenuItem::with_id(app, "exit", "退出 / Exit", true, None::<&str>)?;
             let menu = tauri::menu::Menu::with_items(app, &[&open, &exit])?;
             let mut tray = tauri::tray::TrayIconBuilder::with_id("main-tray")
-                .tooltip("Rhizome")
+                .tooltip(app_name)
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {

@@ -14,6 +14,7 @@ export type AppLanguage = "zh-CN" | "en-US";
 const STORAGE_KEY = "rhizome-language";
 
 const english: Record<string, string> = {
+  龙盾: "Rhizome",
   查看许可原文: "View license text",
   "许可文本加载失败，请重试。": "Could not load the license text. Please retry.",
 

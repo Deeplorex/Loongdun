@@ -9,7 +9,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
         <img src={rhizomeMark} alt="" width="40" height="40" />
       </span>
       <span className="brand__word">
-        Rhizome
+        {t("龙盾")}
         {!compact && <small>{t("个人凭证库")}</small>}
       </span>
     </div>

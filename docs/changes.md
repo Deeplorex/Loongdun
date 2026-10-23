@@ -1,5 +1,14 @@
 # Product changes
 
+## 2026-10-23 — 中文系统安装后程序名显示“龙盾”
+
+- Type: `requirement`
+- Windows NSIS 安装器在系统界面语言为中文（简/繁/港/新/澳任意变体，按 `GetUserDefaultUILanguage` 主语言 ID 判定）时，开始菜单与桌面快捷方式以及“应用和功能”卸载项显示“龙盾”，开始菜单搜索“龙盾”即可找到本程序；其他语言保持现有名称。
+- 实现方式：`src-tauri/installer-hooks.nsh`（经 `bundle.windows.nsis.installerHooks` 引用）在安装后把模板创建的快捷方式重命名为“龙盾”（重命名保留目标与 AppUserModelID），覆写卸载注册表 `DisplayName` 值；交互安装的桌面快捷方式因由完成页在安装段之后创建，统一在 `.onGUIEnd` 收尾换名，静默安装在钩子内直接处理；卸载时同步取消固定并删除“龙盾”快捷方式（`/UPDATE` 模式与模板一致保留）。
+- 边界：安装目录与卸载注册表键路径仍由 `productName`「Rhizome 密钥库」派生，安装路径不受影响；MSI/dmg 目标、应用标识符与法律文本中的 "Rhizome" 命名不变。
+- 运行期同一条件下（`src-tauri/src/branding.rs`）：主窗口标题、托盘提示与托盘菜单显示“龙盾”，界面品牌词牌在中文界面显示“龙盾”、英文界面显示 "Rhizome"（`src/components/Brand.tsx`）。未新增第三方依赖（Win32 语言 API 经直接声明调用，与 NSIS 侧使用同一 API 保持判定口径一致），仅刷新 `src-tauri/tauri.conf.json` 在法律清单中的证据摘要（依赖版本与许可元数据未变）。
+- Tests: `src-tauri/src/branding.rs` 覆盖各中文变体与其他语言的名称映射；`src/components/Brand.test.tsx` 覆盖中英文词牌显示。
+
 ## 2026-10-12 — In-app password generator with security-first rules
 
 - Type: `requirement`

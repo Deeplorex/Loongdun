@@ -6,7 +6,7 @@
     "src-tauri/Cargo.lock": "f11a51bf902178a38d450864104b9a0330960632bfe05d2f862601cdb1d9d419",
     "src-tauri/Cargo.toml": "484afe5fdb1c2ea5599213a1d6bc1e3e2b8da030934bb8d997788c9b6cb74e9d",
     "package.json": "7af49e94e56b79c33f227ea0c9ca1f40320a673bcca9c2cdf6f326ad7151dab1",
-    "src-tauri/tauri.conf.json": "d5377efc5d0ef26ef5a232513427552c5ded59e2cca2d32f1e6892ef7e971031"
+    "src-tauri/tauri.conf.json": "1862846f43754196a8738987d5cc80339af73e1dd96700a83931c1459438d9c9"
   },
   "gaps": [],
   "releaseBlockers": [
