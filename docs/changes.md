@@ -1,5 +1,12 @@
 # Product changes
 
+## 2026-10-24 — 详情面板直接切换凭证星标
+
+- Type: `requirement`
+- 凭证详情面板头部新增星标按钮（与产品面板的星标交互一致）：点击即加入/取消星标收藏，无需先进入编辑器；按钮带 `aria-pressed` 状态，已星标时图标填充并以“取消凭证星标”播报，操作后有轻提示。原头部只读的静态星标展示移除，由该按钮同时承担状态展示。
+- 保存链路：星标切换在 Rust `save_asset` 之上走“取完整编辑输入 → 翻转 `favorite` → 整行保存”的路径（`src/App.tsx` 的 `toggleAssetFavorite`），避免用列表摘要直接保存导致字段被整行 UPDATE 清空；不触碰凭证关联与关系数据。后端无改动，`?demo` 模式经 `demoApi` 同样支持。
+- Tests: `src/components/DetailPanel.test.tsx` 覆盖星标/取消星标的按钮状态与回调；`src/App.test.tsx` 覆盖完整输入往返保存（断言 `getAssetForEdit` 取全量输入、`saveAsset` 收到翻转后的 `favorite` 与原字段）与成功提示。
+
 ## 2026-10-24 — 默认库位置改到各系统用户目录
 
 - Type: `requirement`

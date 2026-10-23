@@ -14,6 +14,8 @@ vi.mock("./lib/commands", () => ({
     autoBackup: vi.fn().mockResolvedValue(null),
     getSettings: vi.fn(),
     getAsset: vi.fn(),
+    getAssetForEdit: vi.fn(),
+    saveAsset: vi.fn(),
     lockVault: vi.fn(),
     saveSettings: vi.fn(),
     enableSystemUnlock: vi.fn(),
@@ -138,6 +140,69 @@ describe("Rhizome shell", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "关系图谱" })).toBeInTheDocument(),
     );
+  });
+
+  it("toggles the star from the detail panel without opening the editor", async () => {
+    mocked.vaultStatus.mockResolvedValue({
+      state: "unlocked",
+      vaultPath: "D:\\RhizomeVault",
+      systemUnlockAvailable: true,
+      systemUnlockEnabled: false,
+    });
+    const asset = {
+      id: "asset-1",
+      kind: "server" as const,
+      title: "生产服务器",
+      platform: "阿里云",
+      usernameHint: "root",
+      environment: "Prod",
+      favorite: false,
+      updatedAt: "2026-09-02T12:00:00Z",
+      tags: [],
+      coreFields: [],
+    };
+    const detail = {
+      summary: asset,
+      notes: "",
+      fields: [],
+      attachments: [],
+      bindings: [],
+      assetRelations: [],
+      childAssets: [],
+    };
+    const editInput = {
+      id: "asset-1",
+      kind: "server" as const,
+      title: "生产服务器",
+      platform: "阿里云",
+      usernameHint: "root",
+      environment: "Prod",
+      notes: "",
+      favorite: false,
+      expiresAt: null,
+      parentAssetId: null,
+      folderId: null,
+      tags: [],
+      fields: [{ key: "host", label: "IP / 域名", value: "10.0.0.8", sensitive: false }],
+    };
+    mocked.listAssets.mockResolvedValue([asset]);
+    mocked.getAsset.mockResolvedValue(detail);
+    mocked.getAssetForEdit.mockResolvedValue(editInput);
+    mocked.saveAsset.mockResolvedValue(detail);
+
+    render(<App />);
+    await screen.findByRole("heading", { name: "全部凭证" });
+    await userEvent.click(await screen.findByRole("option", { name: /生产服务器/ }));
+    await screen.findByRole("dialog", { name: "生产服务器 详情" });
+    await userEvent.click(screen.getByRole("button", { name: "星标凭证" }));
+
+    expect(mocked.getAssetForEdit).toHaveBeenCalledWith("asset-1");
+    await waitFor(() =>
+      expect(mocked.saveAsset).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "asset-1", favorite: true, fields: editInput.fields }),
+      ),
+    );
+    expect(await screen.findByText("已星标")).toBeInTheDocument();
   });
 
   it("starts a new credential with the type selected in the sidebar", async () => {

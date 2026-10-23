@@ -319,6 +319,17 @@ export default function App() {
         links: { relations: detail.assetRelations, bindings: detail.bindings },
       });
     });
+  // save_asset rewrites the whole row, so the toggle must round-trip the full
+  // edit input instead of saving from the list summary.
+  const toggleAssetFavorite = (id: string, favorite: boolean) =>
+    run(
+      async () => {
+        const input = await api.getAssetForEdit(id);
+        await api.saveAsset({ ...input, favorite });
+        await refresh(id);
+      },
+      favorite ? t("已星标") : t("已取消星标"),
+    );
   const mutateAsset = async (operation: () => Promise<void>, message: string) =>
     run(async () => {
       await operation();
@@ -589,6 +600,7 @@ export default function App() {
             })
           }
           onEdit={editAsset}
+          onToggleFavorite={toggleAssetFavorite}
           onTrash={(id) => mutateAsset(() => api.trashAsset(id), t("已移入回收站"))}
           onRestore={(id) => mutateAsset(() => api.restoreAsset(id), t("凭证已恢复"))}
           onPurge={(id) => mutateAsset(() => api.purgeAsset(id), t("凭证已永久删除"))}

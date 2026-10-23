@@ -52,6 +52,7 @@ interface DetailPanelProps {
   onShowGraph: (id: string) => void;
   onReveal: (assetId: string, fieldKey: string) => Promise<RevealResult>;
   onCopy: (assetId: string, fieldKey: string) => Promise<void>;
+  onToggleFavorite: (id: string, favorite: boolean) => Promise<void>;
   onEdit: (id: string) => Promise<void>;
   onTrash: (id: string) => Promise<void>;
   onRestore: (id: string) => Promise<void>;
@@ -76,6 +77,7 @@ export function DetailPanel({
   onShowGraph,
   onReveal,
   onCopy,
+  onToggleFavorite,
   onEdit,
   onTrash,
   onRestore,
@@ -298,7 +300,6 @@ export function DetailPanel({
           <div className="detail-head__copy">
             <div className="detail-head__line">
               <p className="eyebrow">{t(KIND_LABELS[summary.kind])}</p>
-              {summary.favorite && <Star size={14} fill="currentColor" />}
             </div>
             <h2>{summary.title}</h2>
             <p>
@@ -307,6 +308,16 @@ export function DetailPanel({
             </p>
           </div>
           <div className="detail-head__actions">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => void attempt(() => onToggleFavorite(summary.id, !summary.favorite))}
+              aria-label={t(summary.favorite ? "取消凭证星标" : "星标凭证")}
+              aria-pressed={summary.favorite}
+              disabled={busy}
+            >
+              <Star size={17} fill={summary.favorite ? "currentColor" : "none"} />
+            </button>
             <button
               type="button"
               className="icon-button"

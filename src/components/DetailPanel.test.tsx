@@ -84,6 +84,7 @@ function renderDetail(
       onShowGraph={vi.fn()}
       onReveal={vi.fn()}
       onCopy={vi.fn()}
+      onToggleFavorite={vi.fn()}
       onEdit={vi.fn()}
       onTrash={vi.fn()}
       onRestore={vi.fn()}
@@ -116,6 +117,7 @@ describe("asset detail", () => {
         onShowGraph={vi.fn()}
         onReveal={vi.fn()}
         onCopy={vi.fn()}
+        onToggleFavorite={vi.fn()}
         onEdit={vi.fn()}
         onTrash={vi.fn()}
         onRestore={vi.fn()}
@@ -154,6 +156,7 @@ describe("asset detail", () => {
         onShowGraph={vi.fn()}
         onReveal={vi.fn().mockResolvedValue({ value: "test-secret", expiresInSeconds: 15 })}
         onCopy={vi.fn()}
+        onToggleFavorite={vi.fn()}
         onEdit={vi.fn()}
         onTrash={vi.fn()}
         onRestore={vi.fn()}
@@ -229,6 +232,7 @@ describe("asset detail", () => {
         onShowGraph={vi.fn()}
         onReveal={vi.fn()}
         onCopy={vi.fn()}
+        onToggleFavorite={vi.fn()}
         onEdit={vi.fn()}
         onTrash={vi.fn()}
         onRestore={vi.fn()}
@@ -267,5 +271,24 @@ describe("asset detail", () => {
       relationType: "used_to_recover",
       notes: "用于找回小程序账号",
     });
+  });
+
+  it("stars and unstars the credential from the detail header", async () => {
+    const onToggleFavorite = vi.fn().mockResolvedValue(undefined);
+    renderDetail(detail, { onToggleFavorite });
+
+    const star = screen.getByRole("button", { name: "星标凭证" });
+    expect(star).toHaveAttribute("aria-pressed", "false");
+    await act(async () => {
+      fireEvent.click(star);
+      await Promise.resolve();
+    });
+    expect(onToggleFavorite).toHaveBeenCalledWith("asset-1", true);
+
+    renderDetail({ ...detail, summary: { ...detail.summary, favorite: true } });
+    expect(screen.getByRole("button", { name: "取消凭证星标" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });
