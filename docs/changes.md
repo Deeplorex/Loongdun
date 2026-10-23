@@ -1,5 +1,13 @@
 # Product changes
 
+## 2026-10-24 — 默认库位置改到各系统用户目录
+
+- Type: `requirement`
+- 首次创建或恢复凭证库时的默认保存位置不再硬编码 `D:\RhizomeVault`（盘符根目录），改为各系统用户目录下的常见位置：Windows 与 macOS 为「文档 / Documents」目录下的 `RhizomeVault`（Windows 经系统 Known Folder 解析，跟随用户对该目录的重定向），Linux 优先 XDG 文档目录，未定义时回退用户主目录。
+- 默认位置由 Rust 侧解析（`src-tauri/src/platform.rs` 的 `default_vault_base_dir`、`vault.rs` 的 `default_vault_dir`），经 `VaultStatus.defaultVaultPath` 下发；`VaultGate` 只回填展示，用户仍可直接输入或用目录选择器自定义，自定义能力与现有「记忆上次路径」（`app-state.json`）行为不变，已有库位置不受影响。
+- 说明：若「文档」目录被系统重定向到云同步盘（如 OneDrive），库文件会随系统同步；库内数据库与密钥信封均为静态加密，且用户可随时把保存位置改到任意本地目录。
+- Tests: `src/components/VaultGate.test.tsx` 覆盖默认路径回填与自定义路径创建；`src/App.test.tsx` 覆盖未初始化态展示后端默认位置；`src-tauri/src/vault.rs` 覆盖未初始化状态携带平台默认目录、初始化仍使用用户指定目录。
+
 ## 2026-10-23 — 中文系统安装后程序名显示“龙盾”
 
 - Type: `requirement`

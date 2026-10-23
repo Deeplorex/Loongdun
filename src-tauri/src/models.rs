@@ -388,6 +388,7 @@ pub struct GraphData {
 pub struct VaultStatus {
     pub state: String,
     pub vault_path: Option<String>,
+    pub default_vault_path: String,
     pub system_unlock_available: bool,
     pub system_unlock_enabled: bool,
 }

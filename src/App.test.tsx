@@ -69,11 +69,15 @@ describe("Rhizome shell", () => {
   it("shows the initialization gate when no vault exists", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "uninitialized",
+      defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
     render(<App />);
     expect(await screen.findByRole("heading", { name: "创建凭证库" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "保存位置" })).toHaveValue(
+      "C:\\Users\\tester\\Documents\\RhizomeVault",
+    );
     expect(screen.getByText("数据只保存在本机")).toBeInTheDocument();
   });
 

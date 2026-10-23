@@ -25,7 +25,10 @@ pub fn run() {
         .setup(|app| {
             let config_dir = app.path().app_config_dir()?;
             std::fs::create_dir_all(&config_dir)?;
-            app.manage(vault::AppState::new(config_dir));
+            app.manage(vault::AppState::new(
+                config_dir,
+                vault::default_vault_dir(app.handle()),
+            ));
             let ui_language = branding::user_default_ui_language();
             let app_name = branding::app_display_name(ui_language);
             if let Some(window) = app.get_webview_window("main") {

@@ -9,8 +9,16 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 const lockedStatus: VaultStatus = {
   state: "locked",
   vaultPath: "D:\\RhizomeVault",
+  defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
   systemUnlockAvailable: true,
   systemUnlockEnabled: true,
+};
+
+const uninitializedStatus: VaultStatus = {
+  state: "uninitialized",
+  defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
+  systemUnlockAvailable: false,
+  systemUnlockEnabled: false,
 };
 
 const baseProps = {
@@ -60,5 +68,28 @@ describe("vault gate", () => {
 
     expect(onSystemUnlock).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "使用 Windows Hello" })).not.toBeInTheDocument();
+  });
+
+  it("seeds the save location with the platform default from the backend", () => {
+    render(<VaultGate {...baseProps} status={uninitializedStatus} onSystemUnlock={vi.fn()} />);
+
+    expect(screen.getByRole("textbox", { name: "保存位置" })).toHaveValue(
+      "C:\\Users\\tester\\Documents\\RhizomeVault",
+    );
+  });
+
+  it("creates the vault at a customized save location", async () => {
+    render(<VaultGate {...baseProps} status={uninitializedStatus} onSystemUnlock={vi.fn()} />);
+
+    const location = screen.getByRole("textbox", { name: "保存位置" });
+    await userEvent.clear(location);
+    await userEvent.type(location, "E:\\CustomVault");
+    await userEvent.type(screen.getByLabelText("主密码"), "custom-location");
+    await userEvent.type(screen.getByLabelText("再次输入主密码"), "custom-location");
+    await userEvent.click(screen.getByRole("button", { name: "创建凭证库" }));
+
+    await waitFor(() =>
+      expect(baseProps.onInitialize).toHaveBeenCalledWith("E:\\CustomVault", "custom-location"),
+    );
   });
 });

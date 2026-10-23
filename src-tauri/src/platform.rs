@@ -1,6 +1,19 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::error::{AppError, AppResult};
+use tauri::Manager;
+
+/// Base directory for a fresh vault: the user's documents folder on every
+/// platform, falling back to the home directory where none is defined.
+pub fn default_vault_base_dir(app: &tauri::AppHandle) -> PathBuf {
+    app.path()
+        .document_dir()
+        .or_else(|_| app.path().home_dir())
+        .unwrap_or_else(|_| app.path().app_config_dir().unwrap_or_default())
+}
 
 #[cfg(windows)]
 pub fn replace_file_atomic(source: &Path, target: &Path) -> AppResult<()> {

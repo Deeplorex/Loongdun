@@ -43,15 +43,16 @@ export function VaultGate({
   const { t } = useI18n();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [vaultPath, setVaultPath] = useState(status.vaultPath || "D:\\RhizomeVault");
+  const suggestedVaultPath = status.vaultPath || status.defaultVaultPath || "";
+  const [vaultPath, setVaultPath] = useState(suggestedVaultPath);
   const [useRecovery, setUseRecovery] = useState(false);
   const [restoreMode, setRestoreMode] = useState(false);
   const [backupPath, setBackupPath] = useState("");
   const automaticSystemUnlockStarted = useRef(false);
 
   useEffect(() => {
-    if (status.vaultPath) setVaultPath(status.vaultPath);
-  }, [status.vaultPath]);
+    if (suggestedVaultPath) setVaultPath(suggestedVaultPath);
+  }, [suggestedVaultPath]);
 
   useEffect(() => {
     if (

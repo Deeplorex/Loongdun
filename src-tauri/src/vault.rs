@@ -26,6 +26,13 @@ const DATABASE_NAME: &str = "vault.db";
 const ENVELOPE_NAME: &str = "key-envelope.json";
 const SETTINGS_NAME: &str = "settings.json";
 const SYSTEM_KEY_NAME: &str = "system-key.bin";
+pub const DEFAULT_VAULT_DIR_NAME: &str = "RhizomeVault";
+
+/// Suggested location for a fresh vault, following each platform's user
+/// directory conventions (documents folder, then home directory).
+pub fn default_vault_dir(app: &tauri::AppHandle) -> PathBuf {
+    platform::default_vault_base_dir(app).join(DEFAULT_VAULT_DIR_NAME)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -42,12 +49,13 @@ pub struct VaultSession {
 pub struct AppState {
     session: Mutex<Option<VaultSession>>,
     locator_path: PathBuf,
+    default_vault_dir: PathBuf,
     last_vault: Mutex<Option<PathBuf>>,
     settings: Mutex<VaultSettings>,
 }
 
 impl AppState {
-    pub fn new(app_config_dir: PathBuf) -> Self {
+    pub fn new(app_config_dir: PathBuf, default_vault_dir: PathBuf) -> Self {
         let locator_path = app_config_dir.join("app-state.json");
         let last_vault = fs::read(&locator_path)
             .ok()
@@ -60,6 +68,7 @@ impl AppState {
         Self {
             session: Mutex::new(None),
             locator_path,
+            default_vault_dir,
             last_vault: Mutex::new(last_vault),
             settings: Mutex::new(settings),
         }
@@ -147,6 +156,7 @@ impl AppState {
         VaultStatus {
             state: state.into(),
             vault_path: path.map(|value| value.to_string_lossy().into_owned()),
+            default_vault_path: self.default_vault_dir.to_string_lossy().into_owned(),
             system_unlock_available: platform::system_unlock_available(),
             system_unlock_enabled: enabled,
         }
@@ -387,7 +397,10 @@ mod tests {
     #[test]
     fn automatic_backup_skips_locked_vault_and_resumes_after_unlock() {
         let root = tempfile::tempdir().unwrap();
-        let state = AppState::new(root.path().join("config"));
+        let state = AppState::new(
+            root.path().join("config"),
+            root.path().join("default-vault"),
+        );
         assert!(state.auto_backup().unwrap().is_none());
         state
             .initialize(root.path().join("vault"), "test-password")
@@ -411,7 +424,8 @@ mod tests {
     fn close_behavior_persists_and_is_available_while_locked() {
         let root = tempfile::tempdir().unwrap();
         let config = root.path().join("config");
-        let state = AppState::new(config.clone());
+        let default_vault = root.path().join("default-vault");
+        let state = AppState::new(config.clone(), default_vault.clone());
         assert!(!state.close_to_tray());
         state
             .initialize(root.path().join("vault"), "test-password")
@@ -432,16 +446,50 @@ mod tests {
             .unwrap();
         state.lock();
         assert!(state.close_to_tray());
-        assert!(AppState::new(config.clone()).close_to_tray());
+        assert!(AppState::new(config.clone(), default_vault).close_to_tray());
         state.unlock("test-password", false).unwrap();
         state.save_settings(VaultSettings::default()).unwrap();
-        assert!(!AppState::new(config).close_to_tray());
+        assert!(!AppState::new(config, root.path().join("default-vault")).close_to_tray());
+    }
+
+    #[test]
+    fn uninitialized_status_reports_the_platform_default_vault_dir() {
+        let root = tempfile::tempdir().unwrap();
+        let default_vault = root.path().join("Documents").join(DEFAULT_VAULT_DIR_NAME);
+        let state = AppState::new(root.path().join("config"), default_vault.clone());
+        let status = state.status();
+        assert_eq!(status.state, "uninitialized");
+        assert!(status.vault_path.is_none());
+        assert_eq!(
+            status.default_vault_path,
+            default_vault.to_string_lossy().into_owned()
+        );
+
+        // Initializing always uses the caller-provided directory, never the default.
+        state
+            .initialize(root.path().join("custom-vault"), "test-password")
+            .unwrap();
+        let status = state.status();
+        assert_eq!(status.state, "unlocked");
+        assert_eq!(
+            status.vault_path.as_deref(),
+            Some(
+                root.path()
+                    .join("custom-vault")
+                    .to_string_lossy()
+                    .into_owned()
+                    .as_str()
+            )
+        );
     }
 
     #[test]
     fn secret_reveal_reads_policy_without_relocking_the_vault_session() {
         let root = tempfile::tempdir().unwrap();
-        let state = AppState::new(root.path().join("config"));
+        let state = AppState::new(
+            root.path().join("config"),
+            root.path().join("default-vault"),
+        );
         state
             .initialize(root.path().join("vault"), "test-password")
             .unwrap();
@@ -498,7 +546,10 @@ mod tests {
 
     #[test]
     fn settings_reject_an_unknown_interface_language() {
-        let state = AppState::new(tempfile::tempdir().unwrap().path().join("config"));
+        let state = AppState::new(
+            tempfile::tempdir().unwrap().path().join("config"),
+            tempfile::tempdir().unwrap().path().join("default-vault"),
+        );
         assert!(
             state
                 .save_settings(VaultSettings {
@@ -512,7 +563,10 @@ mod tests {
     #[test]
     fn settings_reject_invalid_generator_rules() {
         let root = tempfile::tempdir().unwrap();
-        let state = AppState::new(root.path().join("config"));
+        let state = AppState::new(
+            root.path().join("config"),
+            root.path().join("default-vault"),
+        );
         state
             .initialize(root.path().join("vault"), "test-password")
             .unwrap();

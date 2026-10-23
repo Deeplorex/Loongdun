@@ -229,6 +229,7 @@ export interface GraphData {
 export interface VaultStatus {
   state: "uninitialized" | "locked" | "unlocked";
   vaultPath?: string | null;
+  defaultVaultPath?: string | null;
   systemUnlockAvailable: boolean;
   systemUnlockEnabled: boolean;
 }
