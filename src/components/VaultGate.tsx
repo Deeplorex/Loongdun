@@ -88,8 +88,8 @@ export function VaultGate({
   const chooseBackup = async () => {
     const selection = await open({
       multiple: false,
-      title: t("选择 Rhizome 加密备份"),
-      filters: [{ name: "Rhizome Backup", extensions: ["rhizome-backup"] }],
+      title: t("选择龙盾加密备份"),
+      filters: [{ name: "Loongdun Backup", extensions: ["loongdun-backup", "rhizome-backup"] }],
     });
     if (typeof selection === "string") setBackupPath(selection);
   };
@@ -126,7 +126,7 @@ export function VaultGate({
   return (
     <main className="gate-shell">
       <div className="gate-shell__grain" />
-      <section className="gate-story" aria-label={t("Rhizome 产品介绍")}>
+      <section className="gate-story" aria-label={t("龙盾产品介绍")}>
         <Brand />
         <div className="gate-story__copy">
           <h1>

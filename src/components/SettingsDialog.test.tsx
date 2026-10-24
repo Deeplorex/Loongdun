@@ -54,7 +54,7 @@ describe("settings dialog", () => {
   });
 
   it("lets the user pick a backup folder from the backup directory field", async () => {
-    vi.mocked(openDialog).mockResolvedValue("D:/backups/rhizome");
+    vi.mocked(openDialog).mockResolvedValue("D:/backups/loongdun");
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(
       <SettingsDialog
@@ -73,11 +73,11 @@ describe("settings dialog", () => {
     expect(screen.getByLabelText("备份目录")).toHaveValue("凭证库内的 backups 文件夹");
     await userEvent.click(screen.getByLabelText("备份目录"));
     expect(openDialog).toHaveBeenCalledWith({ directory: true, multiple: false });
-    expect(screen.getByLabelText("备份目录")).toHaveValue("D:/backups/rhizome");
+    expect(screen.getByLabelText("备份目录")).toHaveValue("D:/backups/loongdun");
 
     await userEvent.click(screen.getByRole("button", { name: "保存设置" }));
     expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ autoBackupDirectory: "D:/backups/rhizome" }),
+      expect.objectContaining({ autoBackupDirectory: "D:/backups/loongdun" }),
     );
   });
 

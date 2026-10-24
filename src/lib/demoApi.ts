@@ -22,7 +22,7 @@ const now = "2026-09-02T12:00:00Z";
 let sequence = 20;
 let status: VaultStatus = {
   state: "unlocked",
-  vaultPath: "D:\\RhizomeDemo",
+  vaultPath: "D:\\LoongdunDemo",
   systemUnlockAvailable: true,
   systemUnlockEnabled: false,
 };
@@ -109,7 +109,7 @@ let assets: DemoAsset[] = [
       { key: "host", label: "主机", value: "192.168.1.20", sensitive: false },
       { key: "port", label: "端口", value: "5432", sensitive: false },
       { key: "database", label: "数据库名", value: "home_services", sensitive: false },
-      { key: "username", label: "用户名", value: "rhizome", sensitive: false },
+      { key: "username", label: "用户名", value: "loongdun", sensitive: false },
       { key: "password", label: "密码", value: "demo-db-password", sensitive: true },
       { key: "connection_mode", label: "连接方式", value: "TCP/IP 直连", sensitive: false },
     ],
@@ -377,7 +377,7 @@ export function createDemoApi() {
     vaultStatus: async () => clone(status),
     initializeVault: async (vaultPath: string) => {
       status = { ...status, state: "unlocked", vaultPath };
-      return { status: clone(status), recoveryKey: "RHIZOME-DEMO-RECOVERY-KEY" };
+      return { status: clone(status), recoveryKey: "LOONGDUN-DEMO-RECOVERY-KEY" };
     },
     unlockVault: async () => {
       status = { ...status, state: "unlocked" };
@@ -400,7 +400,7 @@ export function createDemoApi() {
       return clone(status);
     },
     changeMasterPassword: async () => undefined,
-    rotateRecoveryKey: async () => "RHIZOME-DEMO-NEW-RECOVERY-KEY",
+    rotateRecoveryKey: async () => "LOONGDUN-DEMO-NEW-RECOVERY-KEY",
     generatePassword: async (options: PasswordGeneratorOptions) => demoGeneratePassword(options),
     listAssets: async (filter: AssetQuery) => {
       const query = filter.query?.trim().toLocaleLowerCase("zh-CN");

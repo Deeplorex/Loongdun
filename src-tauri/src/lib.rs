@@ -4,6 +4,7 @@ mod commands;
 mod crypto;
 mod error;
 mod generator;
+mod migration;
 mod models;
 mod platform;
 mod storage;
@@ -25,6 +26,8 @@ pub fn run() {
         .setup(|app| {
             let config_dir = app.path().app_config_dir()?;
             std::fs::create_dir_all(&config_dir)?;
+            let vault_base_dir = platform::default_vault_base_dir(app.handle());
+            migration::migrate_legacy_state(&config_dir, &vault_base_dir);
             app.manage(vault::AppState::new(
                 config_dir,
                 vault::default_vault_dir(app.handle()),
@@ -35,9 +38,9 @@ pub fn run() {
                 let _ = window.set_title(app_name);
             }
             let open_label = if branding::is_chinese_ui_language(ui_language) {
-                "打开龙盾 / Open"
+                format!("打开{} / Open", app_name)
             } else {
-                "打开 / Open Rhizome"
+                format!("打开 / Open {app_name}")
             };
             let open = tauri::menu::MenuItem::with_id(app, "open", open_label, true, None::<&str>)?;
             let exit =
@@ -127,7 +130,7 @@ pub fn run() {
             commands::restore_backup,
         ])
         .build(tauri::generate_context!())
-        .expect("failed to build Rhizome")
+        .expect("failed to build Loongdun")
         .run(|app_handle, event| {
             if matches!(
                 event,

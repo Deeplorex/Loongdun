@@ -83,7 +83,7 @@ function add(component, files) {
   if (!component.license) gaps.push(`${component.id}: no license expression`);
   components.push(component);
 }
-for (const pkg of cargo.packages.filter((pkg) => nodes.has(pkg.id) && pkg.name !== "rhizome")) {
+for (const pkg of cargo.packages.filter((pkg) => nodes.has(pkg.id) && pkg.name !== "loongdun")) {
   const directory = path.dirname(pkg.manifest_path);
   const source = `https://crates.io/api/v1/crates/${pkg.name}/${pkg.version}/download`;
   const files = legalFiles(directory).map((file) => ({
@@ -187,9 +187,9 @@ fs.writeFileSync(
 );
 fs.writeFileSync("src/legal/third-party-license-texts.json", `${JSON.stringify(texts)}\n`);
 const lines = [
-  "# Rhizome third-party notices",
+  "# Loongdun third-party notices",
   "",
-  "This Windows inventory conservatively includes runtime dependencies and build-time packages that may generate shipped code. Scope labels are not a claim that every listed package is linked. Exact upstream license/NOTICE files are in docs/legal/licenses and can be read offline in the application. Original texts govern; Rhizome's no-sale terms do not restrict third-party rights.",
+  "This Windows inventory conservatively includes runtime dependencies and build-time packages that may generate shipped code. Scope labels are not a claim that every listed package is linked. Exact upstream license/NOTICE files are in docs/legal/licenses and can be read offline in the application. Original texts govern; Loongdun's no-sale terms do not restrict third-party rights.",
   "",
   "MPL package sources are supplied unchanged in docs/legal/sources. See docs/legal/release-license-review.md for native/installer evidence and any unresolved distribution requirements.",
   "",

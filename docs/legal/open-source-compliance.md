@@ -1,6 +1,6 @@
 # Open-source compliance
 
-Rhizome records the Windows production npm closure, platform-filtered Cargo graph and separately audited native/installer resources in `src/legal/third-party-components.json`. Build support is labelled separately. Original texts are preserved in `docs/legal/licenses` and available offline in the application; required source archives are included in `docs/legal/sources`. See `release-license-review.md` for evidence and unresolved release gates. `THIRD-PARTY-NOTICES.md` and these directories are configured as native bundle resources.
+Loongdun records the Windows production npm closure, platform-filtered Cargo graph and separately audited native/installer resources in `src/legal/third-party-components.json`. Build support is labelled separately. Original texts are preserved in `docs/legal/licenses` and available offline in the application; required source archives are included in `docs/legal/sources`. See `release-license-review.md` for evidence and unresolved release gates. `THIRD-PARTY-NOTICES.md` and these directories are configured as native bundle resources.
 
 For every dependency change:
 

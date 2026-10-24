@@ -1,6 +1,6 @@
-# Rhizome product baseline
+# Loongdun product baseline
 
-Rhizome is a single-user desktop vault for long-lived, manually maintained credentials and the places that consume them. It answers two questions: “Where is this credential?” and “What will break if I rotate it?”
+Loongdun（龙盾，公司品牌 Deeplorex）is a single-user desktop vault for long-lived, manually maintained credentials and the places that consume them. It answers two questions: “Where is this credential?” and “What will break if I rotate it?”
 
 ## Now
 
@@ -15,9 +15,9 @@ Rhizome is a single-user desktop vault for long-lived, manually maintained crede
 - Directional credential-to-credential relationships record registration, sign-in, recovery, credential issuance, and shared-account links. A credential detail can add either side of the relationship and the graph shows the complete labeled chain.
 - Search, nested classification, tags, favorites, trash, expiry metadata, reverse lookup, and a graph view.
 - Asset-first desktop workspace: one searchable full-width metadata table with populated core-field previews and a compact on-demand detail dialog.
-- Local platform identity system with a Rhizome mark, bundled brand logos for common websites/clouds/databases, and category-icon fallbacks.
+- Local platform identity system with a Loongdun mark, bundled brand logos for common websites/clouds/databases, and category-icon fallbacks.
 - Master-password encryption, one-time recovery key, optional OS quick unlock, automatic lock, configurable per-field reveal expiry, and clipboard clearing.
-- On Windows, Hello verification is an operating-system dialog owned by and foregrounded over the active Rhizome window. Quick unlock requests verification once on startup. Relocking after inactivity, hiding the window or pressing Lock stays silent until the user chooses Windows Hello.
+- On Windows, Hello verification is an operating-system dialog owned by and foregrounded over the active Loongdun window. Quick unlock requests verification once on startup. Relocking after inactivity, hiding the window or pressing Lock stays silent until the user chooses Windows Hello.
 - Encrypted backup and cold migration between Windows and macOS. Automatic backups default to daily while the app is open and the vault is unlocked, with hourly/weekly/off settings and a local destination. Overdue backups run on the next unlock; no additional service is installed. Historical backups are retained until manually removed.
 - System, light, and dark themes with a saved Chinese, English, or system-language interface setting.
 - Built-in Chinese and English privacy policy, terms of use, and third-party open-source license inventory. Original third-party license texts can be viewed offline on demand. Native bundles include the legal documents, transitive notices, original texts and relevant source archives; outstanding evidence gates are recorded in docs/legal/release-license-review.md.

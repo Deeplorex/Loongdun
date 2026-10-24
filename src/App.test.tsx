@@ -25,7 +25,7 @@ vi.mock("./lib/commands", () => ({
 
 const mocked = vi.mocked(api);
 
-describe("Rhizome shell", () => {
+describe("Loongdun shell", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete document.documentElement.dataset.theme;
@@ -46,7 +46,7 @@ describe("Rhizome shell", () => {
   it("switches directly from dark to light with one click", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -71,14 +71,14 @@ describe("Rhizome shell", () => {
   it("shows the initialization gate when no vault exists", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "uninitialized",
-      defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
+      defaultVaultPath: "C:\\Users\\tester\\Documents\\Deeplorex\\Loongdun",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
     render(<App />);
     expect(await screen.findByRole("heading", { name: "创建凭证库" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "保存位置" })).toHaveValue(
-      "C:\\Users\\tester\\Documents\\RhizomeVault",
+      "C:\\Users\\tester\\Documents\\Deeplorex\\Loongdun",
     );
     expect(screen.getByText("数据只保存在本机")).toBeInTheDocument();
   });
@@ -86,7 +86,7 @@ describe("Rhizome shell", () => {
   it("keeps the asset list primary and opens details only after a row is clicked", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -145,7 +145,7 @@ describe("Rhizome shell", () => {
   it("toggles the star from the detail panel without opening the editor", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -208,7 +208,7 @@ describe("Rhizome shell", () => {
   it("starts a new credential with the type selected in the sidebar", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -238,7 +238,7 @@ describe("Rhizome shell", () => {
   it("recovers the settings controls when quick unlock fails", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -255,7 +255,7 @@ describe("Rhizome shell", () => {
   it("explains that Windows Hello is awaiting the native verification window", async () => {
     mocked.vaultStatus.mockResolvedValue({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: false,
     });
@@ -277,7 +277,7 @@ describe("Rhizome shell", () => {
 
     finishHello?.({
       state: "unlocked",
-      vaultPath: "D:\\RhizomeVault",
+      vaultPath: "D:\\LoongdunVault",
       systemUnlockAvailable: true,
       systemUnlockEnabled: true,
     });

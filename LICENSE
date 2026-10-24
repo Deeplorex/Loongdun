@@ -1,14 +1,14 @@
-Rhizome No-Sale License 1.0
-Rhizome 禁止销售许可 1.0
+Loongdun No-Sale License 1.0
+Loongdun 禁止销售许可 1.0
 
-Copyright (c) 2026 Rhizome contributors.
+Copyright (c) 2026 Loongdun contributors.
 Each contributor retains copyright in their own contributions.
 各贡献者保留其各自贡献的著作权。
 
 中文条款
 
 1. 适用范围
-本许可适用于本仓库及发行包中由 Rhizome 权利人提供、且未另行标注许可的代码、文档和原创资源（“本软件”）。第三方组件及商标不属于本许可授权范围，其各自许可和权利声明继续有效。
+本许可适用于本仓库及发行包中由龙盾（Loongdun）权利人提供、且未另行标注许可的代码、文档和原创资源（“本软件”）。第三方组件及商标不属于本许可授权范围，其各自许可和权利声明继续有效。
 
 2. 使用授权
 在遵守本许可的前提下，授予个人、企业和其他组织免费、非独占的许可，下载、安装、运行、阅读、复制、学习、修改和备份本软件。允许个人用途、受雇工作、企业内部业务及其他商业使用，但须遵守第 4 条的销售限制。
@@ -22,7 +22,7 @@ Each contributor retains copyright in their own contributions.
 本条不限制第三方许可证或不可排除的法律规定赋予的权利。未明确授予的权利予以保留。
 
 5. 用户数据与标识
-本许可不主张用户录入数据的所有权。除识别本软件及保留声明所必要的使用外，本许可不授予 Rhizome 或第三方名称、标志、商标的使用权，也不表示任何背书。
+本许可不主张用户录入数据的所有权。除识别本软件及保留声明所必要的使用外，本许可不授予龙盾（Loongdun）或第三方名称、标志、商标的使用权，也不表示任何背书。
 
 6. 无担保与责任限制
 在适用法律允许的最大范围内，本软件按“现状”提供，不附带任何明示或默示担保，包括适销性、特定用途适用性及不侵权担保。权利人和贡献者不对因使用或无法使用本软件而产生的损失承担责任。本条不排除或限制适用法律禁止排除或限制的责任。
@@ -33,7 +33,7 @@ Each contributor retains copyright in their own contributions.
 English terms
 
 1. Scope
-This license applies to code, documentation, and original assets supplied by Rhizome rights holders in this repository or its releases that are not separately licensed (the "Software"). Third-party components and trademarks remain subject to their own licenses and notices.
+This license applies to code, documentation, and original assets supplied by Loongdun rights holders in this repository or its releases that are not separately licensed (the "Software"). Third-party components and trademarks remain subject to their own licenses and notices.
 
 2. Use grant
 Subject to this license, individuals, companies, and other organizations receive a free, non-exclusive license to download, install, run, read, copy, study, modify, and back up the Software. Personal purposes, employment-related work, internal business, and other commercial use are permitted, subject to the sales restrictions in section 4.
@@ -47,7 +47,7 @@ Separate installation, configuration, support, training, custom development, and
 This clause does not restrict rights independently granted by third-party licenses or non-waivable law. All rights not expressly granted are reserved.
 
 5. User data and branding
-This license claims no ownership of user-entered data. Except as necessary to identify the Software and retain notices, it grants no rights to Rhizome or third-party names, logos, or trademarks and implies no endorsement.
+This license claims no ownership of user-entered data. Except as necessary to identify the Software and retain notices, it grants no rights to Loongdun or third-party names, logos, or trademarks and implies no endorsement.
 
 6. Disclaimer and limitation of liability
 To the maximum extent permitted by applicable law, the Software is provided "AS IS", without express or implied warranties, including merchantability, fitness for a particular purpose, or non-infringement. Rights holders and contributors are not liable for losses arising from use or inability to use the Software. Nothing excludes or limits liability that applicable law prohibits excluding or limiting.

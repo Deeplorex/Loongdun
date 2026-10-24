@@ -8,15 +8,15 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 
 const lockedStatus: VaultStatus = {
   state: "locked",
-  vaultPath: "D:\\RhizomeVault",
-  defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
+  vaultPath: "D:\\LoongdunVault",
+  defaultVaultPath: "C:\\Users\\tester\\Documents\\Deeplorex\\Loongdun",
   systemUnlockAvailable: true,
   systemUnlockEnabled: true,
 };
 
 const uninitializedStatus: VaultStatus = {
   state: "uninitialized",
-  defaultVaultPath: "C:\\Users\\tester\\Documents\\RhizomeVault",
+  defaultVaultPath: "C:\\Users\\tester\\Documents\\Deeplorex\\Loongdun",
   systemUnlockAvailable: false,
   systemUnlockEnabled: false,
 };
@@ -74,7 +74,7 @@ describe("vault gate", () => {
     render(<VaultGate {...baseProps} status={uninitializedStatus} onSystemUnlock={vi.fn()} />);
 
     expect(screen.getByRole("textbox", { name: "保存位置" })).toHaveValue(
-      "C:\\Users\\tester\\Documents\\RhizomeVault",
+      "C:\\Users\\tester\\Documents\\Deeplorex\\Loongdun",
     );
   });
 

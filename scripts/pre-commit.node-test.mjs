@@ -40,7 +40,7 @@ test("unstaged edits and Git errors block before running checks", () => {
 });
 
 test("installer handles archives, repeat setup and custom hooks", () => {
-  const root = mkdtempSync(join(tmpdir(), "rhizome-hooks-"));
+  const root = mkdtempSync(join(tmpdir(), "loongdun-hooks-"));
   const git = (...args) => spawnSync("git", args, { cwd: root, encoding: "utf8" });
   try {
     mkdirSync(join(root, "scripts"));

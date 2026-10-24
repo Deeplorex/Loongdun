@@ -10,9 +10,9 @@ This review covers the current Windows x64 configuration, not an unbuilt macOS d
 
 - MIT, ISC and BSD copyright and permission/disclaimer texts are retained verbatim, including Lucide's Feather attribution and embedded MIT text.
 - Apache texts and supplied NOTICE files are retained. See [Apache 2.0 section 4](https://www.apache.org/licenses/LICENSE-2.0).
-- MPL-covered crate source archives are supplied unchanged in `legal/sources` in the installer: cssparser, cssparser-macros, dtoa-short, option-ext and selectors. Their original source and license terms remain available independently of Rhizome's no-sale terms. See [MPL 2.0](https://www.mozilla.org/MPL/2.0/).
+- MPL-covered crate source archives are supplied unchanged in `legal/sources` in the installer: cssparser, cssparser-macros, dtoa-short, option-ext and selectors. Their original source and license terms remain available independently of Loongdun's no-sale terms. See [MPL 2.0](https://www.mozilla.org/MPL/2.0/).
 - Unicode, BSL, Zlib, Unlicense and other alternatives are retained as supplied, without relabeling all code as MIT. Rust's own standard-library copyright report contains its additional per-file exceptions and third-party notices; it is supplied with the toolchain's license text directory.
-- Rhizome's no-sale license applies only to Rhizome-owned work. It does not restrict use, redistribution or modification of third-party components under their own terms.
+- Loongdun's no-sale license applies only to Loongdun-owned work. It does not restrict use, redistribution or modification of third-party components under their own terms.
 
 ## Native and installer components
 
@@ -22,7 +22,7 @@ This review covers the current Windows x64 configuration, not an unbuilt macOS d
 - NSIS is 3.11, verified by makensis /VERSION. COPYING includes zlib, bzip2 and CPL terms. The current installer uses LZMA. Its corresponding NSIS v311 source archive (commit 7359413009afd4f0fff472d841fc2f2cc0e0a5f8) is supplied, including compression-module sources, rather than omitting CPL obligations.
 - WiX is 3.14.1. Its MS-RL text and corresponding wix3141rtm source archive (commit b40e9a32c24033e11b77baf2c91a704382f898ed) are supplied for installer code/custom actions. WiX build tools are not installed into the application.
 - Tauri's NSIS utility plugin is 0.5.3, identified by the Tauri CLI 2.11.4 bundler source. MIT/Apache texts and tagged source (commit 13d9edd27b69310e108d6fbd49f90992f8a05390) are supplied. See the remaining gate below.
-- Simple Icons and Lucide supply the external icons; their original licenses are preserved. Brand marks remain their owners' trademarks, without endorsement. The Rhizome mark and application icon are repository product assets, not assigned a third-party license here. No bundled fonts were found; styles use system fonts.
+- Simple Icons and Lucide supply the external icons; their original licenses are preserved. Brand marks remain their owners' trademarks, without endorsement. The Loongdun mark and application icon are repository product assets, not assigned a third-party license here. No bundled fonts were found; styles use system fonts.
 
 ## Remaining release gate — do not claim a complete audit
 

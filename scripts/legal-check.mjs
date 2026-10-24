@@ -25,7 +25,7 @@ for (const source of ["../docs/legal/licenses/", "../docs/legal/sources/"]) {
 }
 const projectLicense = await read("LICENSE");
 const tauriConfig = JSON.parse(await read("src-tauri/tauri.conf.json"));
-if (!projectLicense.includes("Rhizome No-Sale License 1.0"))
+if (!projectLicense.includes("Loongdun No-Sale License 1.0"))
   errors.push("Missing project no-sale license");
 if (
   packageJson.license !== "SEE LICENSE IN LICENSE" ||
@@ -55,7 +55,7 @@ const cargoMetadata = JSON.parse(
 const resolvedIds = new Set(cargoMetadata.resolve.nodes.map((node) => node.id));
 for (const pkg of cargoMetadata.packages) {
   if (
-    pkg.name !== "rhizome" &&
+    pkg.name !== "loongdun" &&
     resolvedIds.has(pkg.id) &&
     !ids.has(`cargo/${pkg.name}@${pkg.version}`)
   )

@@ -13,14 +13,14 @@ function renderBrand() {
 
 describe("brand wordmark", () => {
   it("shows 龙盾 in Chinese", () => {
-    localStorage.setItem("rhizome-language", "zh-CN");
+    localStorage.setItem("loongdun-language", "zh-CN");
     renderBrand();
     expect(screen.getByText("龙盾")).toBeInTheDocument();
   });
 
-  it("shows Rhizome in English", () => {
-    localStorage.setItem("rhizome-language", "en-US");
+  it("shows Loongdun in English", () => {
+    localStorage.setItem("loongdun-language", "en-US");
     renderBrand();
-    expect(screen.getByText("Rhizome")).toBeInTheDocument();
+    expect(screen.getByText("Loongdun")).toBeInTheDocument();
   });
 });

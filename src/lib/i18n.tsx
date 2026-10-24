@@ -11,10 +11,10 @@ import type { LanguagePreference } from "../types";
 
 export type AppLanguage = "zh-CN" | "en-US";
 
-const STORAGE_KEY = "rhizome-language";
+const STORAGE_KEY = "loongdun-language";
 
 const english: Record<string, string> = {
-  龙盾: "Rhizome",
+  龙盾: "Loongdun",
   查看许可原文: "View license text",
   "许可文本加载失败，请重试。": "Could not load the license text. Please retry.",
 
@@ -314,7 +314,7 @@ const english: Record<string, string> = {
   "私钥和口令只保存在这条凭证中。":
     "The private key and passphrase are stored only in this credential.",
   选择保存位置: "Choose storage location",
-  "选择 Rhizome 加密备份": "Choose a Rhizome encrypted backup",
+  选择龙盾加密备份: "Choose a Loongdun encrypted backup",
   恢复凭证库: "Restore credentials",
   创建凭证库: "Create credential vault",
   欢迎回来: "Welcome back",
@@ -323,7 +323,7 @@ const english: Record<string, string> = {
   "集中保存长期使用的账号、密钥和凭证文件，数据只留在这台电脑上。":
     "Keep long-lived accounts, keys, and credential files together. Your data stays on this computer.",
   "凭证库已锁定。验证后继续使用。": "Your credentials are locked. Verify to continue.",
-  "Rhizome 产品介绍": "About Rhizome",
+  龙盾产品介绍: "About Loongdun",
   "把密码和密钥，": "Keep passwords and keys",
   "安心收在一处。": "safely in one place.",
   "保存长期使用的凭证，也记住它们属于哪里、被哪些产品使用。":
@@ -395,7 +395,7 @@ const english: Record<string, string> = {
   主密码已修改: "Master password changed",
   "备份文件已加密，恢复时需要主密码或恢复密钥。":
     "Backups are encrypted and require the master password or recovery key to restore.",
-  "导出 .rhizome-backup": "Export .rhizome-backup",
+  "导出 .loongdun-backup": "Export .loongdun-backup",
   更换恢复密钥: "Replace recovery key",
   保存设置: "Save settings",
   设置已保存: "Settings saved",
@@ -408,16 +408,16 @@ const english: Record<string, string> = {
   用户协议: "Terms of Use",
   第三方开源许可: "Third-party open-source licenses",
   法律与许可: "LEGAL & LICENSES",
-  "关于 Rhizome": "About Rhizome",
+  关于龙盾: "About Loongdun",
   法律文档: "Legal documents",
   界面与桌面桥接: "Interface and desktop bridge",
   本地核心: "Local core",
   原生组件: "Native components",
   "{count} 个组件": "{count} components",
-  "Rhizome 使用以下开源软件。各组件仍由其权利人拥有，并按对应许可提供。":
-    "Rhizome uses the following open-source software. Each component remains owned by its rights holders and is provided under its respective license.",
-  "完整清单随安装包提供。平台名称与图标的商标权归各自权利人所有，不代表其对 Rhizome 的认可。":
-    "The complete notice is included with the installer. Platform names and icons remain trademarks of their respective owners and do not imply endorsement of Rhizome.",
+  "龙盾使用以下开源软件。各组件仍由其权利人拥有，并按对应许可提供。":
+    "Loongdun uses the following open-source software. Each component remains owned by its rights holders and is provided under its respective license.",
+  "完整清单随安装包提供。平台名称与图标的商标权归各自权利人所有，不代表其对龙盾的认可。":
+    "The complete notice is included with the installer. Platform names and icons remain trademarks of their respective owners and do not imply endorsement of Loongdun.",
   完成: "Done",
   "操作未完成：{detail}": "The operation could not be completed: {detail}",
   未知错误: "Unknown error",

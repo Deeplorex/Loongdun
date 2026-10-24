@@ -2009,6 +2009,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 
 [[package]]
+name = "loongdun"
+version = "0.1.0"
+dependencies = [
+ "arboard",
+ "argon2",
+ "base64 0.22.1",
+ "chacha20poly1305",
+ "chrono",
+ "getrandom 0.3.4",
+ "hex",
+ "parking_lot",
+ "rusqlite",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tempfile",
+ "thiserror 2.0.20",
+ "uuid",
+ "windows 0.62.2",
+ "windows-future 0.3.2",
+ "zeroize",
+ "zip",
+]
+
+[[package]]
 name = "markup5ever"
 version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2866,35 +2895,6 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows-sys 0.60.2",
-]
-
-[[package]]
-name = "rhizome"
-version = "0.1.0"
-dependencies = [
- "arboard",
- "argon2",
- "base64 0.22.1",
- "chacha20poly1305",
- "chrono",
- "getrandom 0.3.4",
- "hex",
- "parking_lot",
- "rusqlite",
- "secrecy",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tempfile",
- "thiserror 2.0.20",
- "uuid",
- "windows 0.62.2",
- "windows-future 0.3.2",
- "zeroize",
- "zip",
 ]
 
 [[package]]

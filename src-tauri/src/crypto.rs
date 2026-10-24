@@ -10,7 +10,11 @@ use zeroize::{Zeroize, Zeroizing};
 
 use crate::error::{AppError, AppResult};
 
-const AAD: &[u8] = b"rhizome-vault-key-envelope-v1";
+/// 当前加密域分离常量（Loongdun 品牌期写入的信封均使用它）。
+const AAD: &[u8] = b"loongdun-vault-key-envelope-v1";
+/// 旧品牌期（Rhizome）写入的信封使用它；仅用于解密回退，永不再用于加密。
+/// 旧信封会在用户修改主密码或轮换恢复密钥时自然迁移到新域。
+const LEGACY_AAD: &[u8] = b"rhizome-vault-key-envelope-v1";
 const KEY_BYTES: usize = 32;
 const SALT_BYTES: usize = 16;
 const NONCE_BYTES: usize = 24;
@@ -79,6 +83,10 @@ fn derive_key(
 }
 
 pub fn wrap_key(key: &[u8], secret: &str) -> AppResult<WrappedKey> {
+    wrap_key_with_aad(key, secret, AAD)
+}
+
+fn wrap_key_with_aad(key: &[u8], secret: &str, aad: &[u8]) -> AppResult<WrappedKey> {
     let settings = ArgonSettings::default();
     let salt = random_bytes::<SALT_BYTES>()?;
     let nonce = random_bytes::<NONCE_BYTES>()?;
@@ -87,7 +95,7 @@ pub fn wrap_key(key: &[u8], secret: &str) -> AppResult<WrappedKey> {
     let cipher =
         XChaCha20Poly1305::new_from_slice(derived.as_ref()).map_err(|_| AppError::Crypto)?;
     let ciphertext = cipher
-        .encrypt(XNonce::from_slice(&nonce), Payload { msg: key, aad: AAD })
+        .encrypt(XNonce::from_slice(&nonce), Payload { msg: key, aad })
         .map_err(|_| AppError::Crypto)?;
     Ok(WrappedKey {
         salt: URL_SAFE_NO_PAD.encode(salt),
@@ -114,15 +122,19 @@ pub fn unwrap_key(wrapper: &WrappedKey, credential: &str) -> AppResult<Zeroizing
     let derived = derive_key(&secret, &salt, &wrapper.argon)?;
     let cipher =
         XChaCha20Poly1305::new_from_slice(derived.as_ref()).map_err(|_| AppError::Crypto)?;
-    let mut plaintext = cipher
-        .decrypt(
-            XNonce::from_slice(&nonce),
-            Payload {
-                msg: &ciphertext,
-                aad: AAD,
-            },
-        )
-        .map_err(|_| AppError::InvalidCredential)?;
+    let decrypt = |aad: &[u8]| -> AppResult<Vec<u8>> {
+        cipher
+            .decrypt(
+                XNonce::from_slice(&nonce),
+                Payload {
+                    msg: &ciphertext,
+                    aad,
+                },
+            )
+            .map_err(|_| AppError::InvalidCredential)
+    };
+    // 新域失败时回退旧品牌域（解密开销远小于 Argon2 派生，错误口令仅多一次尝试）
+    let mut plaintext = decrypt(AAD).or_else(|_| decrypt(LEGACY_AAD))?;
     if plaintext.len() != KEY_BYTES {
         plaintext.zeroize();
         return Err(AppError::InvalidCredential);
@@ -207,5 +219,27 @@ mod tests {
         let (_, mut envelope, _) = create_envelope("correct horse battery staple").unwrap();
         envelope.password.ciphertext.push('A');
         assert!(unlock_envelope(&envelope, "correct horse battery staple", false).is_err());
+    }
+
+    #[test]
+    fn legacy_brand_envelope_still_unlocks_and_new_envelopes_reject_it() {
+        let (key, mut envelope, recovery) =
+            create_envelope("correct horse battery staple").unwrap();
+        // 模拟旧品牌版本写入的信封：password 槽用旧加密域重包
+        envelope.password =
+            wrap_key_with_aad(key.as_slice(), "correct horse battery staple", LEGACY_AAD).unwrap();
+        assert_eq!(
+            unlock_envelope(&envelope, "correct horse battery staple", false)
+                .unwrap()
+                .as_slice(),
+            key.as_slice()
+        );
+        // recovery 槽仍是新域，恢复密钥照常解锁
+        assert_eq!(
+            unlock_envelope(&envelope, &recovery, true)
+                .unwrap()
+                .as_slice(),
+            key.as_slice()
+        );
     }
 }

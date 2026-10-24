@@ -1,6 +1,6 @@
-# Rhizome third-party notices
+# Loongdun third-party notices
 
-This Windows inventory conservatively includes runtime dependencies and build-time packages that may generate shipped code. Scope labels are not a claim that every listed package is linked. Exact upstream license/NOTICE files are in docs/legal/licenses and can be read offline in the application. Original texts govern; Rhizome's no-sale terms do not restrict third-party rights.
+This Windows inventory conservatively includes runtime dependencies and build-time packages that may generate shipped code. Scope labels are not a claim that every listed package is linked. Exact upstream license/NOTICE files are in docs/legal/licenses and can be read offline in the application. Original texts govern; Loongdun's no-sale terms do not restrict third-party rights.
 
 MPL package sources are supplied unchanged in docs/legal/sources. See docs/legal/release-license-review.md for native/installer evidence and any unresolved distribution requirements.
 

@@ -1,23 +1,23 @@
-# Rhizome Privacy Policy
+# Loongdun Privacy Policy
 
 Version 1.0 | Effective September 3, 2026
 
-Rhizome is a single-user credential manager that runs locally. This policy explains how the app handles data on your device. During normal use, Rhizome does not collect, upload, sell, or otherwise send your credentials or usage information to the publisher.
+Loongdun is a single-user credential manager that runs locally. This policy explains how the app handles data on your device. During normal use, Loongdun does not collect, upload, sell, or otherwise send your credentials or usage information to the publisher.
 
 ## 1. Scope and publisher
 
-This policy applies to the Rhizome desktop application. The publisher identity and current contact details are provided on the official Rhizome download page. Use the support method listed there for privacy enquiries.
+This policy applies to the Loongdun desktop application. The publisher identity and current contact details are provided on the official Loongdun download page. Use the support method listed there for privacy enquiries.
 
 ## 2. Data processed on your device
 
 - Accounts, passwords, API credentials, server and database details, key files, recovery information, notes, tags, products, and dependency relationships that you enter.
 - Local settings such as the vault location, interface language, theme, auto-lock period, reveal period, and clipboard-clearing period.
-- Wrapped key material protected by Windows Hello or the macOS authentication system. Rhizome does not read or store biometric templates.
+- Wrapped key material protected by Windows Hello or the macOS authentication system. Loongdun does not read or store biometric templates.
 - Values you copy to the system clipboard and local files you explicitly choose to import, export, or back up.
 
 ## 3. Purpose and method
 
-This data is processed only on your device to store, search, display, and relate credentials; create and restore encrypted backups; and perform actions that you request. Rhizome does not create a cloud account, build advertising profiles, synchronize devices, or perform telemetry analytics.
+This data is processed only on your device to store, search, display, and relate credentials; create and restore encrypted backups; and perform actions that you request. Loongdun does not create a cloud account, build advertising profiles, synchronize devices, or perform telemetry analytics.
 
 ## 4. Storage and security
 
@@ -44,7 +44,7 @@ You can view, change, copy, export, trash, or permanently delete local data, dis
 
 ## 9. Children
 
-Rhizome is not directed specifically to children and does not attempt to determine a user's age. Do not store another person's information without lawful authorization, especially information about children under the age applicable in your jurisdiction.
+Loongdun is not directed specifically to children and does not attempt to determine a user's age. Do not store another person's information without lawful authorization, especially information about children under the age applicable in your jurisdiction.
 
 ## 10. Changes to this policy
 

@@ -3,10 +3,10 @@
   "target": "x86_64-pc-windows-msvc",
   "inputs": {
     "pnpm-lock.yaml": "1c47f83fbb901323135d89d7da2efde780be62757f55e1eec7e7fd5e4e0a1a00",
-    "src-tauri/Cargo.lock": "f11a51bf902178a38d450864104b9a0330960632bfe05d2f862601cdb1d9d419",
-    "src-tauri/Cargo.toml": "484afe5fdb1c2ea5599213a1d6bc1e3e2b8da030934bb8d997788c9b6cb74e9d",
-    "package.json": "7af49e94e56b79c33f227ea0c9ca1f40320a673bcca9c2cdf6f326ad7151dab1",
-    "src-tauri/tauri.conf.json": "1862846f43754196a8738987d5cc80339af73e1dd96700a83931c1459438d9c9"
+    "src-tauri/Cargo.lock": "cd7a09dbd2a628b49dad24d772566bd11ce4303ef537cb1af411224adc30e667",
+    "src-tauri/Cargo.toml": "2af53919e8c8bf5c5c13f22b83cd44cde4bc31d108f19f0a0849b8b3bf076eb1",
+    "package.json": "19b1303a42d82d0a071d717bbe659960170289a8abfd8d6996137e73cef98985",
+    "src-tauri/tauri.conf.json": "ebc75404e446083464faecfc515ed58452af9a9e6bb0a52ec00c7162451a4695"
   },
   "gaps": [],
   "releaseBlockers": [

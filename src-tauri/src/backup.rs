@@ -51,7 +51,7 @@ pub fn export_if_due(
         return Ok(None);
     }
     let target = directory.join(format!(
-        "rhizome-auto-{now}-{}.rhizome-backup",
+        "loongdun-auto-{now}-{}.loongdun-backup",
         uuid::Uuid::new_v4()
     ));
     export_backup(connection, vault_dir, &target)?;
@@ -136,7 +136,7 @@ pub fn export_backup(
         .parent()
         .ok_or_else(|| AppError::Validation("备份路径无效".into()))?;
     fs::create_dir_all(target_parent)?;
-    let temporary = target_path.with_extension("rhizome-backup.partial");
+    let temporary = target_path.with_extension("loongdun-backup.partial");
     let output = fs::OpenOptions::new()
         .create(true)
         .truncate(true)
@@ -387,7 +387,7 @@ mod tests {
         .unwrap();
         let connection =
             initialize_database(&source.join(DATABASE_NAME), &key, &envelope.vault_id).unwrap();
-        let backup = root.path().join("vault.rhizome-backup");
+        let backup = root.path().join("vault.loongdun-backup");
         export_backup(&connection, &source, &backup).unwrap();
         drop(connection);
         let target = root.path().join("target");

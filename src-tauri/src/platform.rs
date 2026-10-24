@@ -69,13 +69,18 @@ pub fn prepare_memory_lock_quota() {}
 
 #[cfg(windows)]
 pub fn owner_window_handle(window: &tauri::Window) -> AppResult<isize> {
-    window
-        .set_focus()
-        .map_err(|_| AppError::Message("无法激活 Rhizome 主窗口".into()))?;
-    window
-        .hwnd()
-        .map(|handle| handle.0 as isize)
-        .map_err(|_| AppError::Message("无法取得 Rhizome 主窗口句柄".into()))
+    window.set_focus().map_err(|_| {
+        AppError::Message(format!(
+            "无法激活{}主窗口",
+            crate::branding::current_app_display_name()
+        ))
+    })?;
+    window.hwnd().map(|handle| handle.0 as isize).map_err(|_| {
+        AppError::Message(format!(
+            "无法取得{}主窗口句柄",
+            crate::branding::current_app_display_name()
+        ))
+    })
 }
 
 #[cfg(not(windows))]
@@ -137,7 +142,13 @@ fn request_user_presence(owner_window: isize) -> AppResult<()> {
     let interop = factory::<UserConsentVerifier, IUserConsentVerifierInterop>()
         .map_err(|_| AppError::SystemUnlockDenied)?;
     let operation: IAsyncOperation<UserConsentVerificationResult> = unsafe {
-        interop.RequestVerificationForWindowAsync(owner, &HSTRING::from("验证身份以解锁 Rhizome"))
+        interop.RequestVerificationForWindowAsync(
+            owner,
+            &HSTRING::from(format!(
+                "验证身份以解锁{}",
+                crate::branding::current_app_display_name()
+            )),
+        )
     }
     .map_err(|_| AppError::SystemUnlockDenied)?;
     let result = operation.join().map_err(|_| AppError::SystemUnlockDenied)?;

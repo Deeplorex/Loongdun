@@ -44,6 +44,6 @@ describe("interface language", () => {
     await userEvent.click(screen.getByRole("button", { name: "English" }));
     expect(screen.getByText("All credentials")).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en-US");
-    expect(localStorage.getItem("rhizome-language")).toBe("en-US");
+    expect(localStorage.getItem("loongdun-language")).toBe("en-US");
   });
 });

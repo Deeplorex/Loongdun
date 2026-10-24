@@ -5,8 +5,8 @@ import { I18nProvider } from "../lib/i18n";
 import { LegalDialog } from "./LegalDialog";
 
 describe("legal dialog", () => {
-  beforeEach(() => localStorage.setItem("rhizome-language", "en-US"));
-  afterEach(() => localStorage.removeItem("rhizome-language"));
+  beforeEach(() => localStorage.setItem("loongdun-language", "en-US"));
+  afterEach(() => localStorage.removeItem("loongdun-language"));
 
   it("loads original third-party license text locally on request", async () => {
     render(
@@ -23,13 +23,13 @@ describe("legal dialog", () => {
 
   it("describes business use and the no-sale restriction in both languages", () => {
     for (const language of ["en-US", "zh-CN"]) {
-      localStorage.setItem("rhizome-language", language);
+      localStorage.setItem("loongdun-language", language);
       const { unmount } = render(
         <I18nProvider>
           <LegalDialog initialDocument="terms" onClose={vi.fn()} />
         </I18nProvider>,
       );
-      const license = screen.getByText(/Rhizome No-Sale License 1.0/);
+      const license = screen.getByText(/Loongdun No-Sale License 1.0/);
       expect(license).toHaveTextContent(
         language === "en-US" ? "work and internal business" : "工作和内部业务",
       );

@@ -19,12 +19,12 @@ const privacyZh: LegalDocument = {
   title: "隐私政策",
   version: "版本 1.0 · 生效日期：2026 年 9 月 3 日",
   introduction:
-    "Rhizome 是一款单用户、本地运行的凭证管理工具。本政策说明软件在你的设备上如何处理数据。Rhizome 运行时不向发布者收集、上传或出售你的凭证及使用信息。",
+    "龙盾 是一款单用户、本地运行的凭证管理工具。本政策说明软件在你的设备上如何处理数据。龙盾 运行时不向发布者收集、上传或出售你的凭证及使用信息。",
   sections: [
     {
       title: "1. 适用范围与发布者",
       paragraphs: [
-        "本政策适用于 Rhizome 桌面应用。软件发布者及有效联系方式以 Rhizome 官方下载页面公布的信息为准；如需提出隐私相关问题，请使用该页面所列的支持方式联系发布者。",
+        "本政策适用于 龙盾 桌面应用。软件发布者及有效联系方式以 龙盾 官方下载页面公布的信息为准；如需提出隐私相关问题，请使用该页面所列的支持方式联系发布者。",
       ],
     },
     {
@@ -32,14 +32,14 @@ const privacyZh: LegalDocument = {
       items: [
         "你主动录入的账号、密码、API 凭证、服务器和数据库信息、密钥文件、恢复信息、备注、标签，以及产品和依赖关系。",
         "凭证库位置、界面语言、主题、自动锁定、显示时限和剪贴板清除时限等本地设置。",
-        "为快速解锁而交由 Windows Hello 或 macOS 系统认证机制保护的密钥包装数据。Rhizome 不读取或保存指纹、面容等生物识别模板。",
+        "为快速解锁而交由 Windows Hello 或 macOS 系统认证机制保护的密钥包装数据。龙盾 不读取或保存指纹、面容等生物识别模板。",
         "你主动复制到系统剪贴板的内容，以及你主动选择导入、导出或备份的本地文件。",
       ],
     },
     {
       title: "3. 处理目的与方式",
       paragraphs: [
-        "上述数据仅用于在你的设备上保存、检索、展示和关联凭证，完成加密备份与恢复，并执行你主动发起的复制、导入、导出和系统解锁操作。Rhizome 不建立云端账号，不进行广告画像、跨设备同步或遥测分析。",
+        "上述数据仅用于在你的设备上保存、检索、展示和关联凭证，完成加密备份与恢复，并执行你主动发起的复制、导入、导出和系统解锁操作。龙盾 不建立云端账号，不进行广告画像、跨设备同步或遥测分析。",
       ],
     },
     {
@@ -54,7 +54,7 @@ const privacyZh: LegalDocument = {
     {
       title: "5. 数据传输与第三方",
       paragraphs: [
-        "Rhizome 发布版本不包含云同步、遥测、广告、远程字体、远程脚本或业务网络请求。开源组件在本机参与界面、加密、数据库和系统集成，不会因此把你的凭证发送给其作者。第三方组件及许可可在“第三方开源许可”中查看。",
+        "龙盾 发布版本不包含云同步、遥测、广告、远程字体、远程脚本或业务网络请求。开源组件在本机参与界面、加密、数据库和系统集成，不会因此把你的凭证发送给其作者。第三方组件及许可可在“第三方开源许可”中查看。",
       ],
     },
     {
@@ -78,7 +78,7 @@ const privacyZh: LegalDocument = {
     {
       title: "9. 未成年人",
       paragraphs: [
-        "Rhizome 不以未成年人为专门服务对象，也不会主动识别用户年龄。请勿在无合法授权的情况下保存他人的个人信息，尤其是未满十四周岁未成年人的信息。",
+        "龙盾 不以未成年人为专门服务对象，也不会主动识别用户年龄。请勿在无合法授权的情况下保存他人的个人信息，尤其是未满十四周岁未成年人的信息。",
       ],
     },
     {
@@ -94,12 +94,12 @@ const privacyEn: LegalDocument = {
   title: "Privacy Policy",
   version: "Version 1.0 · Effective September 3, 2026",
   introduction:
-    "Rhizome is a single-user credential manager that runs locally. This policy explains how the app handles data on your device. During normal use, Rhizome does not collect, upload, sell, or otherwise send your credentials or usage information to the publisher.",
+    "Loongdun is a single-user credential manager that runs locally. This policy explains how the app handles data on your device. During normal use, Loongdun does not collect, upload, sell, or otherwise send your credentials or usage information to the publisher.",
   sections: [
     {
       title: "1. Scope and publisher",
       paragraphs: [
-        "This policy applies to the Rhizome desktop application. The publisher identity and current contact details are provided on the official Rhizome download page. Use the support method listed there for privacy enquiries.",
+        "This policy applies to the Loongdun desktop application. The publisher identity and current contact details are provided on the official Loongdun download page. Use the support method listed there for privacy enquiries.",
       ],
     },
     {
@@ -107,14 +107,14 @@ const privacyEn: LegalDocument = {
       items: [
         "Accounts, passwords, API credentials, server and database details, key files, recovery information, notes, tags, products, and dependency relationships that you enter.",
         "Local settings such as the credential-vault location, interface language, theme, auto-lock period, reveal period, and clipboard-clearing period.",
-        "Wrapped key material protected by Windows Hello or the macOS authentication system for quick unlock. Rhizome does not read or store biometric templates such as fingerprints or facial data.",
+        "Wrapped key material protected by Windows Hello or the macOS authentication system for quick unlock. Loongdun does not read or store biometric templates such as fingerprints or facial data.",
         "Values you copy to the system clipboard and local files you explicitly choose to import, export, or back up.",
       ],
     },
     {
       title: "3. Purpose and method",
       paragraphs: [
-        "This data is processed only on your device to store, search, display, and relate credentials; create and restore encrypted backups; and perform copy, import, export, and system-unlock actions that you request. Rhizome does not create a cloud account, build advertising profiles, synchronize devices, or perform telemetry analytics.",
+        "This data is processed only on your device to store, search, display, and relate credentials; create and restore encrypted backups; and perform copy, import, export, and system-unlock actions that you request. Loongdun does not create a cloud account, build advertising profiles, synchronize devices, or perform telemetry analytics.",
       ],
     },
     {
@@ -153,7 +153,7 @@ const privacyEn: LegalDocument = {
     {
       title: "9. Children",
       paragraphs: [
-        "Rhizome is not directed specifically to children and does not attempt to determine a user's age. Do not store another person's information without lawful authorization, especially information about children under the age applicable in your jurisdiction.",
+        "Loongdun is not directed specifically to children and does not attempt to determine a user's age. Do not store another person's information without lawful authorization, especially information about children under the age applicable in your jurisdiction.",
       ],
     },
     {
@@ -169,18 +169,18 @@ const termsZh: LegalDocument = {
   title: "用户协议",
   version: "版本 1.1 · 生效日期：2026 年 9 月 7 日",
   introduction:
-    "本协议适用于 Rhizome 桌面应用。下载、安装或使用软件表示你理解并接受本协议；如不同意，请停止使用并卸载软件。",
+    "本协议适用于 龙盾 桌面应用。下载、安装或使用软件表示你理解并接受本协议；如不同意，请停止使用并卸载软件。",
   sections: [
     {
       title: "1. 软件用途",
       paragraphs: [
-        "Rhizome 用于个人管理长期使用的账号、密钥、凭证文件及其使用关系。软件不提供云端托管、代登录、自动填充、自动轮换或发布者协助恢复服务。",
+        "龙盾 用于个人管理长期使用的账号、密钥、凭证文件及其使用关系。软件不提供云端托管、代登录、自动填充、自动轮换或发布者协助恢复服务。",
       ],
     },
     {
       title: "2. 使用许可",
       paragraphs: [
-        "个人、企业及其他组织均可免费使用 Rhizome，包括工作和内部业务用途。Rhizome No-Sale License 1.0 允许修改和免费分享；未经相关权利人书面授权，不得销售原版或修改版、收费授予使用许可、收费分发或收费提供下载。独立的安装、技术支持及托管服务不因收费而被一概禁止，但不得变相收取软件副本、使用许可或下载费用。完整条件以随附 LICENSE 为准。第三方组件仍适用各自许可证。",
+        "个人、企业及其他组织均可免费使用 龙盾，包括工作和内部业务用途。Loongdun No-Sale License 1.0 允许修改和免费分享；未经相关权利人书面授权，不得销售原版或修改版、收费授予使用许可、收费分发或收费提供下载。独立的安装、技术支持及托管服务不因收费而被一概禁止，但不得变相收取软件副本、使用许可或下载费用。完整条件以随附 LICENSE 为准。第三方组件仍适用各自许可证。",
       ],
     },
     {
@@ -206,7 +206,7 @@ const termsZh: LegalDocument = {
     {
       title: "6. 安全边界",
       paragraphs: [
-        "Rhizome 通过本地加密、自动锁定、短时显示和剪贴板清除降低风险，但不能保证绝对安全，也不能抵御已控制设备的管理员、恶意软件、键盘记录、屏幕录制、弱主密码或不安全备份。",
+        "龙盾 通过本地加密、自动锁定、短时显示和剪贴板清除降低风险，但不能保证绝对安全，也不能抵御已控制设备的管理员、恶意软件、键盘记录、屏幕录制、弱主密码或不安全备份。",
       ],
     },
     {
@@ -224,7 +224,7 @@ const termsZh: LegalDocument = {
     {
       title: "9. 第三方软件",
       paragraphs: [
-        "Rhizome 包含开源软件。相关著作权、许可和免责声明归各自权利人所有，可在应用的“第三方开源许可”及随发行包提供的声明中查看。开源组件的名称不表示其作者对 Rhizome 提供担保或背书。",
+        "龙盾 包含开源软件。相关著作权、许可和免责声明归各自权利人所有，可在应用的“第三方开源许可”及随发行包提供的声明中查看。开源组件的名称不表示其作者对 龙盾 提供担保或背书。",
       ],
     },
     {
@@ -236,7 +236,7 @@ const termsZh: LegalDocument = {
     {
       title: "11. 适用规则与联系",
       paragraphs: [
-        "本协议受适用法律约束。若部分条款无效，不影响其他条款。发布者身份和联系方式以 Rhizome 官方下载页面公布的信息为准。",
+        "本协议受适用法律约束。若部分条款无效，不影响其他条款。发布者身份和联系方式以 龙盾 官方下载页面公布的信息为准。",
       ],
     },
   ],
@@ -246,18 +246,18 @@ const termsEn: LegalDocument = {
   title: "Terms of Use",
   version: "Version 1.1 · Effective September 7, 2026",
   introduction:
-    "These terms apply to the Rhizome desktop application. By downloading, installing, or using the app, you acknowledge and accept these terms. If you do not agree, stop using and uninstall the app.",
+    "These terms apply to the Loongdun desktop application. By downloading, installing, or using the app, you acknowledge and accept these terms. If you do not agree, stop using and uninstall the app.",
   sections: [
     {
       title: "1. Purpose",
       paragraphs: [
-        "Rhizome helps an individual manage long-lived accounts, keys, credential files, and their usage relationships. It does not provide cloud hosting, sign in on your behalf, browser autofill, automatic credential rotation, or publisher-assisted recovery.",
+        "Loongdun helps an individual manage long-lived accounts, keys, credential files, and their usage relationships. It does not provide cloud hosting, sign in on your behalf, browser autofill, automatic credential rotation, or publisher-assisted recovery.",
       ],
     },
     {
       title: "2. License to use",
       paragraphs: [
-        "Individuals, companies, and other organizations may use Rhizome free of charge, including for work and internal business. The Rhizome No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses.",
+        "Individuals, companies, and other organizations may use Loongdun free of charge, including for work and internal business. The Loongdun No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses.",
       ],
     },
     {
@@ -301,7 +301,7 @@ const termsEn: LegalDocument = {
     {
       title: "9. Third-party software",
       paragraphs: [
-        "Rhizome includes open-source software. Copyrights, licenses, and disclaimers remain with their respective owners and are listed under Third-party open-source licenses and in notices shipped with the release. Naming a component does not imply that its authors warrant or endorse Rhizome.",
+        "Loongdun includes open-source software. Copyrights, licenses, and disclaimers remain with their respective owners and are listed under Third-party open-source licenses and in notices shipped with the release. Naming a component does not imply that its authors warrant or endorse Loongdun.",
       ],
     },
     {
@@ -313,7 +313,7 @@ const termsEn: LegalDocument = {
     {
       title: "11. Applicable rules and contact",
       paragraphs: [
-        "These terms are subject to applicable law. If one provision is invalid, the others remain in effect. The publisher identity and contact details are provided on the official Rhizome download page.",
+        "These terms are subject to applicable law. If one provision is invalid, the others remain in effect. The publisher identity and contact details are provided on the official Loongdun download page.",
       ],
     },
   ],

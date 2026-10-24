@@ -23,15 +23,29 @@ use crate::{
 };
 
 const DATABASE_NAME: &str = "vault.db";
-const ENVELOPE_NAME: &str = "key-envelope.json";
+/// 库目录的初始化标记文件：每个已初始化的库都有 key-envelope.json。
+pub const ENVELOPE_NAME: &str = "key-envelope.json";
 const SETTINGS_NAME: &str = "settings.json";
 const SYSTEM_KEY_NAME: &str = "system-key.bin";
-pub const DEFAULT_VAULT_DIR_NAME: &str = "RhizomeVault";
+/// 公司品牌名，作为默认库位置的第一级目录（Deeplorex/Loongdun）。
+pub const DEFAULT_VAULT_COMPANY_DIR: &str = "Deeplorex";
+/// 产品名，作为默认库位置的第二级目录（Deeplorex/Loongdun）。
+pub const DEFAULT_VAULT_PRODUCT_DIR: &str = "Loongdun";
+/// 旧版（Rhizome 品牌）的默认库目录名，升级时由 migration 自动迁移。
+pub const LEGACY_VAULT_DIR_NAME: &str = "RhizomeVault";
 
 /// Suggested location for a fresh vault, following each platform's user
 /// directory conventions (documents folder, then home directory).
 pub fn default_vault_dir(app: &tauri::AppHandle) -> PathBuf {
-    platform::default_vault_base_dir(app).join(DEFAULT_VAULT_DIR_NAME)
+    default_vault_dir_under(&platform::default_vault_base_dir(app))
+}
+
+/// 与 `default_vault_dir` 同一规则，但接受调用方给定的基目录（文档目录），
+/// 供启动期迁移与测试复用。
+pub fn default_vault_dir_under(base_dir: &Path) -> PathBuf {
+    base_dir
+        .join(DEFAULT_VAULT_COMPANY_DIR)
+        .join(DEFAULT_VAULT_PRODUCT_DIR)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -455,7 +469,7 @@ mod tests {
     #[test]
     fn uninitialized_status_reports_the_platform_default_vault_dir() {
         let root = tempfile::tempdir().unwrap();
-        let default_vault = root.path().join("Documents").join(DEFAULT_VAULT_DIR_NAME);
+        let default_vault = default_vault_dir_under(&root.path().join("Documents"));
         let state = AppState::new(root.path().join("config"), default_vault.clone());
         let status = state.status();
         assert_eq!(status.state, "uninitialized");

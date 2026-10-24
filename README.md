@@ -1,6 +1,6 @@
-# Rhizome
+# Loongdun（龙盾）
 
-个人密码、密钥与使用关系管理器。把分散的凭证放在一起，也记住它们用在什么地方。
+个人密码、密钥与使用关系管理器，由 Deeplorex 出品。把分散的凭证放在一起，也记住它们用在什么地方。
 
 > 允许个人及企业免费使用、修改和分享；未经授权禁止销售软件或收费提供下载。源码可查看，具体条件见 [LICENSE](LICENSE)。
 
@@ -37,8 +37,8 @@
 需要 Node.js 24.18.0、pnpm 11.24.0 和 Rust 1.98.0。Windows 还需要 Visual C++ Build Tools、Windows SDK、WebView2，以及构建内置 OpenSSL 所需的 Perl。详见[工程指南](docs/engineering/README.md)。
 
 ```sh
-git clone https://github.com/Deeplorex/Rhizome.git
-cd Rhizome
+git clone https://github.com/Deeplorex/Loongdun.git
+cd Loongdun
 corepack pnpm install --frozen-lockfile
 corepack pnpm tauri dev
 ```
@@ -61,14 +61,14 @@ corepack pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis --no-si
 
 ## 使用许可
 
-个人、企业及其他组织均可免费使用 Rhizome，包括工作和内部业务用途。Rhizome No-Sale License 1.0 允许修改和免费分享；未经相关权利人书面授权，不得销售原版或修改版、收费授予使用许可、收费分发或收费提供下载。独立的安装、技术支持及托管服务不因收费而被一概禁止，但不得变相收取软件副本、使用许可或下载费用。完整条件以随附 LICENSE 为准。第三方组件仍适用各自许可证。
+个人、企业及其他组织均可免费使用龙盾（Loongdun），包括工作和内部业务用途。Loongdun No-Sale License 1.0 允许修改和免费分享；未经相关权利人书面授权，不得销售原版或修改版、收费授予使用许可、收费分发或收费提供下载。独立的安装、技术支持及托管服务不因收费而被一概禁止，但不得变相收取软件副本、使用许可或下载费用。完整条件以随附 LICENSE 为准。第三方组件仍适用各自许可证。
 
 本许可不改变第三方软件的许可证，也不授予第三方商标权。详见 [LICENSE](LICENSE) 和[第三方组件声明](THIRD-PARTY-NOTICES.md)。限制销售不符合 [OSI 开源定义](https://opensource.org/osd)，因此请勿将本项目标注为 OSI 开源软件。
 
 ## English
 
-Rhizome is a local desktop vault for personal credentials and their usage relationships. It manages accounts, API keys, servers, databases, recovery credentials, and encrypted key files. Credentials can be linked to other credentials, products, product compositions, and environments.
+Loongdun (龙盾) is a local desktop vault for personal credentials and their usage relationships. It manages accounts, API keys, servers, databases, recovery credentials, and encrypted key files. Credentials can be linked to other credentials, products, product compositions, and environments.
 
 Windows x64 is the current packaging target. Native macOS packaging and system unlock still require verification on a Mac. The interface supports Chinese and English.
 
-Individuals, companies, and other organizations may use Rhizome free of charge, including for work and internal business. The Rhizome No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses. This is not an OSI open-source license.
+Individuals, companies, and other organizations may use Loongdun free of charge, including for work and internal business. The Loongdun No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses. This is not an OSI open-source license.

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.8.1",
   "project": {
-    "name": "rhizome",
-    "displayName": "Rhizome 密钥库",
-    "packageScope": "rhizome",
+    "name": "loongdun",
+    "displayName": "龙盾（Loongdun）",
+    "packageScope": "loongdun",
     "description": "A fully offline personal vault for long-lived credentials, key files, products, and dependency topology."
   },
   "product": {
@@ -56,7 +56,7 @@
     },
     "units": [
       {
-        "name": "rhizome-desktop",
+        "name": "loongdun-desktop",
         "boundary": "React UI plus local Rust command core",
         "deployable": true
       }

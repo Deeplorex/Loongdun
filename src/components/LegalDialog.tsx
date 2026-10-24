@@ -80,7 +80,7 @@ export function LegalDialog({ initialDocument = "privacy", onClose }: LegalDialo
         <header className="modal-head">
           <div>
             <p className="eyebrow">{t("法律与许可")}</p>
-            <h2 id={titleId}>{t("关于 Rhizome")}</h2>
+            <h2 id={titleId}>{t("关于龙盾")}</h2>
           </div>
           <button type="button" className="icon-button" onClick={onClose} aria-label={t("关闭")}>
             <X size={19} />
@@ -139,7 +139,7 @@ export function LegalDialog({ initialDocument = "privacy", onClose }: LegalDialo
             <article className="legal-document open-source-document">
               <header>
                 <h3>{t("第三方开源许可")}</h3>
-                <p>{t("Rhizome 使用以下开源软件。各组件仍由其权利人拥有，并按对应许可提供。")}</p>
+                <p>{t("龙盾使用以下开源软件。各组件仍由其权利人拥有，并按对应许可提供。")}</p>
               </header>
               {componentGroups.map(({ ecosystem, components }) => (
                 <section className="open-source-group" key={ecosystem}>
@@ -184,7 +184,7 @@ export function LegalDialog({ initialDocument = "privacy", onClose }: LegalDialo
               ))}
               <p className="legal-note">
                 {t(
-                  "完整清单随安装包提供。平台名称与图标的商标权归各自权利人所有，不代表其对 Rhizome 的认可。",
+                  "完整清单随安装包提供。平台名称与图标的商标权归各自权利人所有，不代表其对龙盾的认可。",
                 )}
               </p>
             </article>

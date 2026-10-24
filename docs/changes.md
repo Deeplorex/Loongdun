@@ -1,5 +1,17 @@
 # Product changes
 
+## 2026-10-24 — 品牌重塑为 Loongdun（龙盾 / Deeplorex）
+
+- Type: `requirement`
+- 产品英文正式名改为中文拼音 "Loongdun"，公司品牌为 Deeplorex，产品名与公司名两级目录化：`productName` 改为 `Loongdun`（卸载键、快捷方式、dmg 内 `.app` 名称随之更新），`identifier` 改为 `com.deeplorex.loongdun`（配置目录与 WebView 数据目录随之迁移），新增 `bundle.publisher: Deeplorex`（安装注册表发布者与 `Software\Deeplorex` 键名），主程序二进制由 `rhizome.exe` 改为 `loongdun.exe`（Cargo 包与 lib 同步改名，`package.json` 名改为 `loongdun-vault`）。中文系统仍按既有规则显示“龙盾”（安装钩子与运行期 `branding.rs` 同口径，`DEFAULT_APP_NAME` 由 "Rhizome" 改为 "Loongdun"）。
+- 安装目录：NSIS 默认安装位置由官方模板的 `%LOCALAPPDATA%\{productName}` 一级目录改为 `%LOCALAPPDATA%\Deeplorex\Loongdun`。因 Tauri 2.11 的 NSIS 配置不支持自定义安装目录，内置了基于官方 2.11.4 模板的自定义模板 `src-tauri/installer-template.nsi`（仅改 `.onInit` 默认目录派生行为 `BRAND_INSTALL_DIR`，经 `bundle.windows.nsis.template` 引用）：目录页展示值、静默安装与实际落盘完全一致。用户自定义位置与同品牌升级时注册表恢复的上次位置不受影响。**升级 @tauri-apps/cli 时需对照官方模板重新同步该文件**（文件头有说明）。
+- 数据目录默认位置由 `{用户文档}/RhizomeVault` 改为 `{用户文档}/Deeplorex/Loongdun`（`vault.rs` 的 `default_vault_dir_under`），创建/恢复凭证库的默认建议位置与 `VaultStatus.defaultVaultPath` 下发值随之更新。
+- 旧版本自动迁移（`src-tauri/src/migration.rs`，启动期、构建 AppState 前执行，尽力而为且不删除用户数据）：① 标识符变更后新配置目录缺少 `app-state.json` 而旧目录 `app.rhizome.vault` 存在时，复制定位文件（旧文件保留，可回滚）；② 定位文件指向旧默认库 `{文档}/RhizomeVault`（或定位文件丢失但旧默认库存在且含密钥信封）而新默认位置不存在时，整目录改名为新位置并改写定位文件；自定义库路径、新位置已存在、目录被占用改名失败等情形一律保持原状继续可用。安装层面：安装器检测旧「Rhizome 密钥库」卸载项并静默运行其卸载器、兜底清理旧默认安装目录/卸载键/指向旧目录的快捷方式，避免升级后出现两份安装。
+- 文件与文案：备份文件扩展名改为 `.loongdun-backup`（自动备份命名为 `loongdun-auto-…`，导出默认名 `loongdun-日期.loongdun-backup`；导入对话框同时接受旧 `.rhizome-backup`，旧备份仍可恢复，恢复逻辑与扩展名无关）；界面 i18n 中文文案的产品名统一为“龙盾”、英文为 "Loongdun"（`i18n.tsx` 键与映射、法律对话框、门页介绍、`index.html` 标题与描述）；语言偏好 localStorage 键由 `rhizome-language` 改为 `loongdun-language`（标识符变更后 WebView 存储本就重置，无额外损失）；运行期错误与 Windows Hello 提示中的品牌词统一经 `branding::current_app_display_name()` 取当前语言显示名，不再硬编码。
+- 许可证更名：`Rhizome No-Sale License 1.0` 更名为 `Loongdun No-Sale License 1.0`（中文名 `Loongdun 禁止销售许可 1.0`），LICENSE 本体、双语协议/隐私政策、README、`legal-check` 校验串与 `collect-licenses` 通知模板同步；条款实质不变，仅更名权利人称谓（中文条款用“龙盾（Loongdun）”、英文条款用 Loongdun）。加密域分离常量（`crypto.rs` 信封 AAD）由 `rhizome-vault-key-envelope-v1` 改为 `loongdun-vault-key-envelope-v1`：新写入的信封一律用新域，解密失败时自动回退旧品牌域（旧库/旧备份照常打开），旧信封在用户修改主密码或轮换恢复密钥重包时自然迁移到新域。`THIRD-PARTY-NOTICES.md`、`AGENTS.md`、`.project/standard-project.json` 等工程文档的项目称谓同步改为 Loongdun。法律清单 `inputs` 摘要按新配置手工刷新（tauri.conf.json、Cargo.toml、Cargo.lock、package.json），未运行 `legal:collect`（避免覆盖手工标注）。
+- 边界：MSI（WiX）目标随 `productName` 默认安装到 `Program Files\Loongdun`（无公司前缀），WiX 升级码变化导致旧 MSI 需手动卸载；macOS `.app` 为 `Loongdun.app`；Rhizome-Ark 鸿蒙移植版（独立沙盒数据目录与 bundle 名）按决定不改；GitHub 仓库已更名为 `Deeplorex/Loongdun`（README 克隆地址同步），codeup 组织内路径沿用原名。
+- Tests: `src-tauri/src/migration.rs` 覆盖定位文件复制、旧默认库整目录迁移、自定义位置不动、新位置已存在不覆盖、无库标记目录不接管、定位文件缺失接管、新定位文件优先七种情形；`crypto.rs` 覆盖旧品牌域信封可解锁且新域信封照常工作；`branding.rs` 覆盖当前语言显示名一致性；`backup.rs` 保留旧扩展名备份恢复夹具并新增新扩展名夹具；前端 `Brand.test.tsx`（英文显示 Loongdun）、`App.test.tsx`/`VaultGate.test.tsx`（新默认路径 `Documents\Deeplorex\Loongdun`）、`SettingsDialog.test.tsx`（新导出默认名与双重扩展名过滤器）、`LegalDialog.test.tsx`（新许可证名称）同步更新。NSIS 安装脚本经缓存 makensis 离线编译验证，并完成 `Loongdun_0.1.0_x64-setup.exe` 全量构建。
+
 ## 2026-10-24 — 详情面板直接切换凭证星标
 
 - Type: `requirement`

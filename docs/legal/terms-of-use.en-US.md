@@ -1,16 +1,16 @@
-# Rhizome Terms of Use
+# Loongdun Terms of Use
 
 Version 1.1 | Effective September 7, 2026
 
-These terms apply to the Rhizome desktop application. By downloading, installing, or using the app, you acknowledge and accept these terms. If you do not agree, stop using and uninstall the app.
+These terms apply to the Loongdun desktop application. By downloading, installing, or using the app, you acknowledge and accept these terms. If you do not agree, stop using and uninstall the app.
 
 ## 1. Purpose
 
-Rhizome helps an individual manage long-lived accounts, keys, credential files, and their usage relationships. It does not provide cloud hosting, sign in on your behalf, browser autofill, automatic credential rotation, or publisher-assisted recovery.
+Loongdun helps an individual manage long-lived accounts, keys, credential files, and their usage relationships. It does not provide cloud hosting, sign in on your behalf, browser autofill, automatic credential rotation, or publisher-assisted recovery.
 
 ## 2. License to use
 
-Individuals, companies, and other organizations may use Rhizome free of charge, including for work and internal business. The Rhizome No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses.
+Individuals, companies, and other organizations may use Loongdun free of charge, including for work and internal business. The Loongdun No-Sale License 1.0 permits modification and free sharing; selling original or modified copies, paid use licenses, paid distribution, or charging for downloads requires written permission from the relevant rights holders. Separate installation, support, and hosting services are not prohibited merely because they are paid, but must not disguise charges for software copies, use licenses, or downloads. See the accompanying LICENSE for full conditions. Third-party components retain their own licenses.
 
 ## 3. Lawful and authorized use
 
@@ -40,7 +40,7 @@ You decide whether to install a new version. The publisher may change the app or
 
 ## 9. Third-party software
 
-Rhizome includes open-source software. Copyrights, licenses, and disclaimers remain with their respective owners and are listed under Third-party open-source licenses and in notices shipped with the release.
+Loongdun includes open-source software. Copyrights, licenses, and disclaimers remain with their respective owners and are listed under Third-party open-source licenses and in notices shipped with the release.
 
 ## 10. Stopping use
 
@@ -48,4 +48,4 @@ You may stop using and uninstall the app at any time. Before uninstalling, decid
 
 ## 11. Applicable rules and contact
 
-These terms are subject to applicable law. If one provision is invalid, the others remain in effect. The publisher identity and contact details are provided on the official Rhizome download page.
+These terms are subject to applicable law. If one provision is invalid, the others remain in effect. The publisher identity and contact details are provided on the official Loongdun download page.

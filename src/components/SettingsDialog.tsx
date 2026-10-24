@@ -96,8 +96,8 @@ export function SettingsDialog({
   const backup = async () => {
     const path = await save({
       title: t("导出加密备份"),
-      defaultPath: `rhizome-${new Date().toISOString().slice(0, 10)}.rhizome-backup`,
-      filters: [{ name: "Rhizome Backup", extensions: ["rhizome-backup"] }],
+      defaultPath: `loongdun-${new Date().toISOString().slice(0, 10)}.loongdun-backup`,
+      filters: [{ name: "Loongdun Backup", extensions: ["loongdun-backup", "rhizome-backup"] }],
     });
     if (!path) return;
     await perform(() => onExportBackup(path), t("加密备份已写入所选位置"), "backup");
@@ -445,7 +445,7 @@ export function SettingsDialog({
                 </button>
                 <button type="button" className="secondary-button" onClick={backup} disabled={busy}>
                   <Archive size={16} />
-                  {t("导出 .rhizome-backup")}
+                  {t("导出 .loongdun-backup")}
                 </button>
                 <button
                   type="button"
