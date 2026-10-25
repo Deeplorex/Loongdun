@@ -266,6 +266,8 @@ export interface VaultSettings {
   theme: ThemePreference;
   language: LanguagePreference;
   closeBehavior?: "exit" | "tray";
+  /** Days before expiry to remind in-app; 0 disables reminders. */
+  expiryReminderDays: number;
   autoLockMinutes: number;
   revealSeconds: number;
   clipboardSeconds: number;

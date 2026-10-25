@@ -368,6 +368,7 @@ impl AppState {
             || !["system", "light", "dark"].contains(&settings.theme.as_str())
             || !["system", "zh-CN", "en-US"].contains(&settings.language.as_str())
             || !["exit", "tray"].contains(&settings.close_behavior.as_str())
+            || ![0, 1, 3, 7, 14, 30].contains(&settings.expiry_reminder_days)
             || !(1..=120).contains(&settings.auto_lock_minutes)
             || !(5..=300).contains(&settings.reveal_seconds)
             || !(5..=300).contains(&settings.clipboard_seconds)
@@ -464,6 +465,37 @@ mod tests {
         state.unlock("test-password", false).unwrap();
         state.save_settings(VaultSettings::default()).unwrap();
         assert!(!AppState::new(config, root.path().join("default-vault")).close_to_tray());
+    }
+
+    #[test]
+    fn expiry_reminder_days_is_validated_and_persists() {
+        let root = tempfile::tempdir().unwrap();
+        let config = root.path().join("config");
+        let state = AppState::new(config.clone(), root.path().join("default-vault"));
+        state
+            .initialize(root.path().join("vault"), "test-password")
+            .unwrap();
+        assert!(
+            state
+                .save_settings(VaultSettings {
+                    expiry_reminder_days: 8,
+                    ..VaultSettings::default()
+                })
+                .is_err()
+        );
+        state
+            .save_settings(VaultSettings {
+                expiry_reminder_days: 14,
+                ..VaultSettings::default()
+            })
+            .unwrap();
+        assert_eq!(
+            AppState::new(config, root.path().join("default-vault"))
+                .settings
+                .lock()
+                .expiry_reminder_days,
+            14
+        );
     }
 
     #[test]

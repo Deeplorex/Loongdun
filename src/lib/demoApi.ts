@@ -29,6 +29,7 @@ let status: VaultStatus = {
 let settings: VaultSettings = {
   theme: "system",
   language: "system",
+  expiryReminderDays: 7,
   autoLockMinutes: 5,
   revealSeconds: 30,
   clipboardSeconds: 30,

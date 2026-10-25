@@ -17,6 +17,7 @@ vi.mock("./lib/commands", () => ({
     getAssetForEdit: vi.fn(),
     saveAsset: vi.fn(),
     lockVault: vi.fn(),
+    unlockVault: vi.fn(),
     saveSettings: vi.fn(),
     enableSystemUnlock: vi.fn(),
     copySecret: vi.fn(),
@@ -36,6 +37,7 @@ describe("Loongdun shell", () => {
     mocked.getSettings.mockResolvedValue({
       theme: "system",
       language: "system",
+      expiryReminderDays: 7,
       autoLockMinutes: 5,
       revealSeconds: 30,
       clipboardSeconds: 30,
@@ -53,6 +55,7 @@ describe("Loongdun shell", () => {
     mocked.getSettings.mockResolvedValue({
       theme: "dark",
       language: "system",
+      expiryReminderDays: 7,
       autoLockMinutes: 5,
       revealSeconds: 30,
       clipboardSeconds: 30,
@@ -250,6 +253,55 @@ describe("Loongdun shell", () => {
     await userEvent.click(quickUnlock);
     expect(await screen.findByText(/操作未完成：Windows Hello 未完成/)).toHaveClass("inline-error");
     await waitFor(() => expect(quickUnlock).toBeEnabled());
+  });
+
+  it("reminds about expiring credentials once per unlock", async () => {
+    mocked.vaultStatus.mockResolvedValue({
+      state: "unlocked",
+      vaultPath: "D:\\LoongdunVault",
+      systemUnlockAvailable: true,
+      systemUnlockEnabled: false,
+    });
+    mocked.listAssets.mockResolvedValue([
+      {
+        id: "asset-expired",
+        kind: "api_credential" as const,
+        title: "过期令牌",
+        platform: "",
+        usernameHint: "",
+        environment: "",
+        favorite: false,
+        expiresAt: "2020-01-01",
+        updatedAt: "2026-09-02T12:00:00Z",
+        tags: [],
+        coreFields: [],
+      },
+    ]);
+    mocked.lockVault.mockResolvedValue({
+      state: "locked",
+      vaultPath: "D:\\LoongdunVault",
+      systemUnlockAvailable: true,
+      systemUnlockEnabled: false,
+    });
+    mocked.unlockVault.mockResolvedValue({
+      state: "unlocked",
+      vaultPath: "D:\\LoongdunVault",
+      systemUnlockAvailable: true,
+      systemUnlockEnabled: false,
+    });
+
+    render(<App />);
+    expect(await screen.findByText("提醒：1 个凭证已过期或即将到期")).toBeInTheDocument();
+
+    // The reminder clears on its own and is not raised again until a relock.
+    await waitFor(
+      () => expect(screen.queryByText("提醒：1 个凭证已过期或即将到期")).not.toBeInTheDocument(),
+      { timeout: 4000 },
+    );
+    await userEvent.click(screen.getByRole("button", { name: "锁定" }));
+    await userEvent.type(await screen.findByLabelText("主密码"), "test-password");
+    await userEvent.click(screen.getByRole("button", { name: "解锁凭证库" }));
+    expect(await screen.findByText("提醒：1 个凭证已过期或即将到期")).toBeInTheDocument();
   });
 
   it("explains that Windows Hello is awaiting the native verification window", async () => {

@@ -10,6 +10,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn(), save: vi.fn() }));
 const settings: VaultSettings = {
   theme: "dark",
   language: "system",
+  expiryReminderDays: 7,
   autoLockMinutes: 5,
   revealSeconds: 30,
   clipboardSeconds: 30,
@@ -51,6 +52,31 @@ describe("settings dialog", () => {
     });
     expect(await screen.findByText("设置已保存")).toBeInTheDocument();
     expect(screen.queryByText(/Vault Key|轮换/)).not.toBeInTheDocument();
+  });
+
+  it("saves the expiry reminder window, including turning it off", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SettingsDialog
+        settings={settings}
+        systemUnlockAvailable
+        systemUnlockEnabled={false}
+        onClose={vi.fn()}
+        onSave={onSave}
+        onExportBackup={vi.fn()}
+        onToggleSystemUnlock={vi.fn()}
+        onRotateRecovery={vi.fn()}
+        onChangePassword={vi.fn()}
+      />,
+    );
+
+    const select = screen.getByLabelText("提前提醒");
+    expect(select).toHaveValue("7");
+    await userEvent.selectOptions(select, "30");
+    await userEvent.selectOptions(select, "0");
+    await userEvent.click(screen.getByRole("button", { name: "保存设置" }));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ expiryReminderDays: 0 }));
   });
 
   it("lets the user pick a backup folder from the backup directory field", async () => {

@@ -1,6 +1,7 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
   Archive,
+  BellRing,
   BookOpen,
   Fingerprint,
   FolderOpen,
@@ -274,6 +275,37 @@ export function SettingsDialog({
                     {[15, 30, 60].map((seconds) => (
                       <option key={seconds} value={seconds}>
                         {seconds} {t("秒")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </section>
+            <section className="settings-section">
+              <div className="settings-section__head">
+                <BellRing size={18} />
+                <div>
+                  <h3>{t("到期提醒")}</h3>
+                  <p>{t("临近到期时在应用内提醒，已过期凭证始终提醒。")}</p>
+                </div>
+              </div>
+              <div className="form-grid form-grid--three">
+                <label>
+                  <span>{t("提前提醒")}</span>
+                  <select
+                    name="expiry-reminder-days"
+                    value={draft.expiryReminderDays}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        expiryReminderDays: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value={0}>{t("关闭提醒")}</option>
+                    {[1, 3, 7, 14, 30].map((days) => (
+                      <option key={days} value={days}>
+                        {t("{days} 天", { days })}
                       </option>
                     ))}
                   </select>

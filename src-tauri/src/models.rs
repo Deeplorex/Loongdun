@@ -454,6 +454,8 @@ pub struct VaultSettings {
     pub language: String,
     #[serde(default = "default_close_behavior")]
     pub close_behavior: String,
+    #[serde(default = "default_expiry_reminder_days")]
+    pub expiry_reminder_days: u32,
     pub auto_lock_minutes: u32,
     pub reveal_seconds: u32,
     pub clipboard_seconds: u32,
@@ -471,6 +473,10 @@ fn default_close_behavior() -> String {
     "exit".into()
 }
 
+fn default_expiry_reminder_days() -> u32 {
+    7
+}
+
 impl Default for VaultSettings {
     fn default() -> Self {
         Self {
@@ -480,6 +486,7 @@ impl Default for VaultSettings {
             theme: "system".into(),
             language: default_language(),
             close_behavior: default_close_behavior(),
+            expiry_reminder_days: default_expiry_reminder_days(),
             auto_lock_minutes: 5,
             reveal_seconds: 30,
             clipboard_seconds: 30,

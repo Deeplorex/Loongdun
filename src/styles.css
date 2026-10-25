@@ -2692,6 +2692,16 @@ button,
   color: var(--ink-soft);
 }
 
+.asset-card__expiry--expiring {
+  color: var(--clay);
+  font-weight: 600;
+}
+
+.asset-card__expiry--expired {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 .modal-backdrop {
   backdrop-filter: none;
 }

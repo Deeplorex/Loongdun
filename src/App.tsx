@@ -14,6 +14,7 @@ import { useAutoBackup } from "./hooks/useAutoBackup";
 import { useAutoLock } from "./hooks/useAutoLock";
 import { emptyAsset, KIND_LABELS } from "./lib/assetTemplates";
 import { api } from "./lib/commands";
+import { collectExpiringAssets, todayIso } from "./lib/expiry";
 import { useI18n } from "./lib/i18n";
 import type {
   AssetDetail,
@@ -39,6 +40,7 @@ import type {
 const DEFAULT_SETTINGS: VaultSettings = {
   theme: "system",
   language: "system",
+  expiryReminderDays: 7,
   autoLockMinutes: 5,
   revealSeconds: 30,
   clipboardSeconds: 30,
@@ -77,6 +79,8 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [today, setToday] = useState(() => todayIso());
+  const [indexLoaded, setIndexLoaded] = useState(false);
   const [graphFocus, setGraphFocus] = useState<string>();
   const visibleRequest = useRef(0);
   const busyOperations = useRef(0);
@@ -123,6 +127,7 @@ export default function App() {
     setSettings(loadedSettings);
     applyTheme(loadedSettings.theme);
     setPreference(loadedSettings.language);
+    setIndexLoaded(true);
   }, [applyTheme, setPreference]);
 
   const loadVisible = useCallback(async () => {
@@ -136,13 +141,15 @@ export default function App() {
       includeDeleted: navigation.trash,
     });
     if (requestId === visibleRequest.current) {
-      setVisibleAssets(
-        navigation.trash
-          ? rows.filter((item) => item.deletedAt)
-          : rows.filter((item) => !item.deletedAt),
-      );
+      let visible = navigation.trash
+        ? rows.filter((item) => item.deletedAt)
+        : rows.filter((item) => !item.deletedAt);
+      if (navigation.expiring) {
+        visible = collectExpiringAssets(visible, today, settings.expiryReminderDays);
+      }
+      setVisibleAssets(visible);
     }
-  }, [navigation, query, status?.state]);
+  }, [navigation, query, settings.expiryReminderDays, status?.state, today]);
 
   useEffect(() => {
     if (status?.state === "unlocked")
@@ -202,6 +209,30 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setToday(todayIso()), 3_600_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const expiringAssets = useMemo(
+    () => collectExpiringAssets(assetsIndex, today, settings.expiryReminderDays),
+    [assetsIndex, settings.expiryReminderDays, today],
+  );
+
+  // One expiry reminder per unlock, raised only after the asset index reloads.
+  const expiryReminderShown = useRef(false);
+  useEffect(() => {
+    if (status?.state !== "unlocked") {
+      expiryReminderShown.current = false;
+      return;
+    }
+    if (!indexLoaded || expiryReminderShown.current) return;
+    expiryReminderShown.current = true;
+    if (expiringAssets.length > 0) {
+      setToast(t("提醒：{count} 个凭证已过期或即将到期", { count: expiringAssets.length }));
+    }
+  }, [expiringAssets.length, indexLoaded, status?.state, t]);
+
   const lock = useCallback(async () => {
     try {
       const next = await api.lockVault();
@@ -209,6 +240,7 @@ export default function App() {
       setStatus(next);
       setAssetsIndex([]);
       setVisibleAssets([]);
+      setIndexLoaded(false);
       setDetail(null);
       setSelectedId(undefined);
     } catch (reason) {
@@ -386,6 +418,7 @@ export default function App() {
   const title = useMemo(() => {
     if (navigation.view !== "assets") return "";
     if (navigation.trash) return t("回收站");
+    if (navigation.expiring) return t("即将过期");
     if (navigation.favorites) return t("星标收藏");
     if (navigation.kind) return t(KIND_LABELS[navigation.kind]);
     if (navigation.folderId)
@@ -474,6 +507,7 @@ export default function App() {
         projects={projects}
         folders={folders}
         active={navigation}
+        expiringCount={expiringAssets.length}
         onSaveFolder={saveFolder}
         onDeleteFolder={deleteFolder}
         onNavigate={(target) => {
@@ -524,6 +558,8 @@ export default function App() {
               selectedId={selectedId}
               query={query}
               searchInputId={assetSearchId}
+              expiryReminderDays={settings.expiryReminderDays}
+              emptyTitle={navigation.expiring ? t("没有已过期或即将到期的凭证") : undefined}
               onQueryChange={setQuery}
               onSelect={setSelectedId}
               onCreate={() => setEditor(navigation.kind ? emptyAsset(navigation.kind) : null)}

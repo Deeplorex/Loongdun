@@ -1,5 +1,14 @@
 # Product changes
 
+## 2026-10-24 — 凭证到期应用内提醒
+
+- Type: `requirement`
+- 凭证临近到期时在应用内提醒（不使用系统级通知，维持离线边界）：① 侧边栏「凭证库」区在星标收藏下方新增「即将过期」入口，带数量角标（已过期 + 提前窗口内的凭证数），点击进入按到期日升序的过滤视图；② 解锁凭证库且索引加载完成后，若存在此类凭证弹一次轻提示「提醒：{count} 个凭证已过期或即将到期」，每次解锁至多一次（锁定后重置），避免随日常操作重复打扰；③ 凭证列表卡片到期行显示状态——已过期（红）「已过期 {days} 天」、当天「今天到期」、窗口内（橙）「{days} 天后到期」，悬停可见完整日期，未设到期时间仍显示「长期有效」。
+- 提前提醒窗口可配置：设置对话框新增「到期提醒」区（提前提醒：关闭 / 1 / 3 / 7 / 14 / 30 天，默认 7 天），存为库设置 `expiry_reminder_days`（Rust `VaultSettings` 带 serde default，旧 settings.json 兼容；`save_settings` 按允许值列表校验）。窗口关闭(0)时仅停用提前提醒，已过期凭证仍始终计入提醒与角标。
+- 实现：到期判定为纯前端计算（新增 `src/lib/expiry.ts`：本地时区今日、日期加减、单凭证状态与集合收集），复用解锁后已加载的全量索引 `assetsIndex`，无新 Tauri 命令、无 schema 变更、无新第三方依赖；「即将过期」视图在 `loadVisible` 既有客户端过滤链上追加；「今天」状态每小时轻量刷新，覆盖应用跨天不关机的场景。即将过期视图空态显示「没有已过期或即将到期的凭证」。
+- 边界：附件密码的 `expires_at` 不在本次提醒范围；不引入 tauri-plugin-notification；`?demo` 演示模式设置默认值同步为 7 天。
+- Tests: `src/lib/expiry.test.ts` 覆盖今日到期/窗口边界/已过期/回收站排除/窗口关闭；`src/components/Sidebar.test.tsx` 覆盖「即将过期」入口渲染、角标计数、active 态与导航回调；`src/components/SettingsDialog.test.tsx` 覆盖提醒窗口选择与关闭保存；`src/App.test.tsx` 覆盖解锁后一次性提醒、自动清除与重新解锁后再次提醒；`src-tauri/src/vault.rs` 覆盖 `expiry_reminder_days` 越界拒绝与持久化。
+
 ## 2026-10-24 — 品牌重塑为 Loongdun（龙盾 / Deeplorex）
 
 - Type: `requirement`

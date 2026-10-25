@@ -1,6 +1,7 @@
 import { Clock3, Copy, KeyRound, Plus, Search, SlidersHorizontal, Star } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { KIND_LABELS } from "../lib/assetTemplates";
+import { daysUntil, expiryState, todayIso } from "../lib/expiry";
 import { formatDate } from "../lib/format";
 import { useI18n } from "../lib/i18n";
 import type { AssetSummary } from "../types";
@@ -12,6 +13,8 @@ interface AssetListProps {
   selectedId?: string;
   query: string;
   searchInputId: string;
+  expiryReminderDays: number;
+  emptyTitle?: string;
   onQueryChange: (query: string) => void;
   onSelect: (id: string) => void;
   onCreate: () => void;
@@ -24,6 +27,8 @@ export function AssetList({
   selectedId,
   query,
   searchInputId,
+  expiryReminderDays,
+  emptyTitle,
   onQueryChange,
   onSelect,
   onCreate,
@@ -34,6 +39,25 @@ export function AssetList({
   const [sortBy, setSortBy] = useState<"updated" | "title" | "expiry">("updated");
   const [expiryOnly, setExpiryOnly] = useState(false);
   const toolsRef = useRef<HTMLDivElement>(null);
+  const today = todayIso();
+
+  const expiryLabel = (asset: AssetSummary) => {
+    if (!asset.expiresAt) return { className: "", text: t("长期有效") };
+    const state = expiryState(asset.expiresAt, today, expiryReminderDays);
+    if (!state) return { className: "", text: formatDate(asset.expiresAt, language) };
+    const days = daysUntil(asset.expiresAt, today);
+    if (state === "expired") {
+      return {
+        className: "asset-card__expiry--expired",
+        text: t("已过期 {days} 天", { days: -days }),
+      };
+    }
+    if (days === 0) return { className: "asset-card__expiry--expiring", text: t("今天到期") };
+    return {
+      className: "asset-card__expiry--expiring",
+      text: t("{days} 天后到期", { days }),
+    };
+  };
 
   useEffect(() => {
     if (!filtersOpen) return;
@@ -162,7 +186,7 @@ export function AssetList({
             <span>
               <KeyRound size={23} />
             </span>
-            <h3>{query ? t("没有匹配项") : t("这里还没有凭证")}</h3>
+            <h3>{query ? t("没有匹配项") : (emptyTitle ?? t("这里还没有凭证"))}</h3>
             <p>{query ? t("试试名称、平台或标签。") : t("添加第一条凭证，也可以稍后关联产品。")}</p>
             {!query && (
               <button type="button" className="secondary-button" onClick={onCreate}>
@@ -253,10 +277,18 @@ export function AssetList({
                 </span>
               </span>
               <span className="asset-card__meta">
-                <small className="asset-card__expiry">
-                  <Clock3 size={13} />
-                  {asset.expiresAt ? formatDate(asset.expiresAt, language) : t("长期有效")}
-                </small>
+                {(() => {
+                  const expiry = expiryLabel(asset);
+                  return (
+                    <small
+                      className={`asset-card__expiry ${expiry.className}`}
+                      title={asset.expiresAt ? formatDate(asset.expiresAt, language) : undefined}
+                    >
+                      <Clock3 size={13} />
+                      {expiry.text}
+                    </small>
+                  );
+                })()}
                 <small>{t("更新 {date}", { date: formatDate(asset.updatedAt, language) })}</small>
               </span>
             </div>

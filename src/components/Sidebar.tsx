@@ -1,4 +1,5 @@
 import {
+  AlarmClock,
   Archive,
   Boxes,
   Database,
@@ -21,7 +22,14 @@ import { Brand } from "./Brand";
 import { ProjectLogo } from "./ProjectLogo";
 
 export type NavigationTarget =
-  | { view: "assets"; kind?: AssetKind; folderId?: string; favorites?: boolean; trash?: boolean }
+  | {
+      view: "assets";
+      kind?: AssetKind;
+      folderId?: string;
+      favorites?: boolean;
+      expiring?: boolean;
+      trash?: boolean;
+    }
   | { view: "projects"; projectId?: string }
   | { view: "graph" };
 
@@ -30,6 +38,7 @@ interface SidebarProps {
   projects: Project[];
   folders: Folder[];
   active: NavigationTarget;
+  expiringCount: number;
   onNavigate: (target: NavigationTarget) => void;
   onSaveFolder: (input: FolderInput) => Promise<void>;
   onDeleteFolder: (id: string) => Promise<void>;
@@ -49,6 +58,7 @@ export function Sidebar({
   projects,
   folders,
   active,
+  expiringCount,
   onNavigate,
   onSaveFolder,
   onDeleteFolder,
@@ -73,7 +83,12 @@ export function Sidebar({
           <button
             type="button"
             className={
-              isAssets && !active.kind && !active.folderId && !active.favorites && !active.trash
+              isAssets &&
+              !active.kind &&
+              !active.folderId &&
+              !active.favorites &&
+              !active.expiring &&
+              !active.trash
                 ? "active"
                 : ""
             }
@@ -90,6 +105,16 @@ export function Sidebar({
           >
             <Star size={17} />
             <span>{t("星标收藏")}</span>
+          </button>
+          <button
+            type="button"
+            className={isAssets && active.expiring ? "active" : ""}
+            onClick={() => onNavigate({ view: "assets", expiring: true })}
+            title={t("到期提醒")}
+          >
+            <AlarmClock size={17} />
+            <span>{t("即将过期")}</span>
+            <em>{expiringCount || ""}</em>
           </button>
           <button
             type="button"
