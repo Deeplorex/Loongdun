@@ -772,6 +772,21 @@ textarea::placeholder {
   place-items: center;
 }
 
+/* The generic nav-button rule below would otherwise stretch header action
+   buttons across the whole label row (width, min-height, hover background). */
+.sidebar nav .label-action {
+  width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: var(--text-muted);
+  grid-template-columns: 1fr;
+}
+
+.sidebar nav .label-action:hover {
+  color: var(--forest);
+  background: transparent;
+}
+
 .sidebar nav button,
 .sidebar__foot button {
   display: grid;
