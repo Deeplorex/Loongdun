@@ -152,13 +152,12 @@ fn masked_field_preview(field_key: &str, value: &str) -> String {
 
 const SUMMARY_COLUMNS: &str = "a.id, a.kind, a.title, a.platform, a.username_hint, a.environment, a.favorite, a.expires_at, a.parent_asset_id, a.folder_id, a.deleted_at, a.updated_at, a.tags_json, a.payload_json";
 
-fn fts_query(value: &str) -> String {
-    value
-        .split_whitespace()
-        .filter(|part| !part.is_empty())
-        .map(|part| format!("\"{}\"*", part.replace('"', "\"\"")))
-        .collect::<Vec<_>>()
-        .join(" AND ")
+fn like_pattern(value: &str) -> String {
+    let escaped = value
+        .replace('\\', "\\\\")
+        .replace('%', "\\%")
+        .replace('_', "\\_");
+    format!("%{escaped}%")
 }
 
 pub fn list_assets(connection: &Connection, filter: &AssetFilter) -> AppResult<Vec<AssetSummary>> {
@@ -171,9 +170,23 @@ pub fn list_assets(connection: &Connection, filter: &AssetFilter) -> AppResult<V
         .map(str::trim)
         .filter(|query| !query.is_empty())
     {
-        sql.push_str(" JOIN asset_search s ON s.asset_id = a.id");
-        conditions.push("asset_search MATCH ?".to_string());
-        values.push(Value::Text(fts_query(query)));
+        const SEARCH_COLUMNS: [&str; 6] = [
+            "a.title",
+            "a.platform",
+            "a.username_hint",
+            "a.environment",
+            "a.notes",
+            "a.tags_json",
+        ];
+        for term in query.split_whitespace() {
+            let term_conditions = SEARCH_COLUMNS
+                .map(|column| format!("{column} LIKE ? ESCAPE '\\'"))
+                .join(" OR ");
+            conditions.push(format!("({term_conditions})"));
+            for _ in SEARCH_COLUMNS {
+                values.push(Value::Text(like_pattern(term)));
+            }
+        }
     }
     if let Some(kind) = &filter.kind {
         conditions.push("a.kind = ?".to_string());
@@ -1275,6 +1288,76 @@ mod migration_tests {
                 .iter()
                 .all(|field| field.value != "test-secret")
         );
+    }
+
+    #[test]
+    fn search_matches_substrings_and_escapes_like_wildcards() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("vault.db");
+        let mut connection = initialize_database(&path, &[6_u8; 32], "search-vault").unwrap();
+        let wechat = save_asset(
+            &mut connection,
+            AssetInput {
+                id: None,
+                kind: AssetKind::WebAccount,
+                title: "微信开放平台".into(),
+                platform: "腾讯".into(),
+                username_hint: "life@deeplorex.com".into(),
+                environment: String::new(),
+                notes: String::new(),
+                favorite: false,
+                expires_at: None,
+                parent_asset_id: None,
+                folder_id: None,
+                tags: vec!["微信".into()],
+                fields: vec![],
+            },
+        )
+        .unwrap();
+        save_asset(
+            &mut connection,
+            AssetInput {
+                id: None,
+                kind: AssetKind::WebAccount,
+                title: "进度_50%完成".into(),
+                platform: String::new(),
+                username_hint: String::new(),
+                environment: String::new(),
+                notes: String::new(),
+                favorite: false,
+                expires_at: None,
+                parent_asset_id: None,
+                folder_id: None,
+                tags: vec![],
+                fields: vec![],
+            },
+        )
+        .unwrap();
+        let search = |query: &str| {
+            list_assets(
+                &connection,
+                &AssetFilter {
+                    query: Some(query.into()),
+                    ..Default::default()
+                },
+            )
+            .unwrap()
+            .into_iter()
+            .map(|asset| asset.id)
+            .collect::<Vec<_>>()
+        };
+        let wechat_id = wechat.summary.id.clone();
+
+        assert_eq!(search("开放"), vec![wechat_id.clone()]);
+        assert_eq!(search("deeplorex"), vec![wechat_id.clone()]);
+        assert_eq!(search("微信 开放"), vec![wechat_id.clone()]);
+        assert_eq!(search("腾 讯"), vec![wechat_id.clone()]);
+        assert!(search("不存在的词").is_empty());
+        let wildcard_hits = search("0%完");
+        assert_eq!(wildcard_hits.len(), 1);
+        assert_eq!(wildcard_hits[0], search("_")[0]);
+        assert_eq!(wildcard_hits[0], search("%")[0]);
+        assert_ne!(wildcard_hits[0], wechat_id);
     }
 
     #[test]

@@ -1,5 +1,13 @@
 # Product changes
 
+## 2026-10-28 — 凭证搜索改为子串匹配
+
+- Type: `bug`
+- 凭证列表搜索此前走 SQLite FTS5 前缀匹配（`"词"*`），而 `unicode61` 分词器不切分中文：`微信开放平台` 是单个词元，搜「微信」能命中（词元开头）而搜「开放」返回 0 项；英文词元中部的子串同样搜不到。
+- 修复：`list_assets`（`src-tauri/src/storage.rs`）去掉 FTS MATCH，改为对 `assets` 表的 title / platform / username_hint / environment / notes / tags_json 六列做逐词 `LIKE '%词%'`（`ESCAPE '\'` 转义 `%`、`_`、`\`，多词之间仍为 AND）。LIKE 子串命中是原 FTS 前缀命中在同一字段集上的超集，原命中结果不受影响；本地单用户库数据量小，全表 LIKE 开销可忽略。`asset_search` FTS 表仍随保存同步维护（暂留，未来可用），查询路径不再读取。
+- `?demo` 演示模式搜索本就是子串匹配（`demoApi.ts` 的 `includes`），行为与后端一致，无改动。
+- Tests: `src-tauri/src/storage.rs` 新增 `search_matches_substrings_and_escapes_like_wildcards`：中文词元中部子串（「开放」命中「微信开放平台」）、英文子串（域名中部）、平台字段命中、多词 AND、LIKE 通配符按字面匹配（`%`/`_` 不当通配符用）、无结果查询。
+
 ## 2026-10-25 — 侧边栏分区标题动作按钮恢复紧凑样式
 
 - Type: `bug`
