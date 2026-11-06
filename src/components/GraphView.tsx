@@ -10,6 +10,7 @@ import {
   MiniMap,
   type Node,
   type NodeProps,
+  Handle,
   Position,
   ReactFlow,
   type ReactFlowInstance,
@@ -75,7 +76,7 @@ const LINK_GAP = 78;
 const REPULSION = 34000;
 const COLLISION_GAP = 12;
 const COMPONENT_GAP = 130;
-const PACK_ROW_WIDTH = 1000;
+const PACK_ROW_WIDTH = 2400;
 const GOLDEN_ANGLE = 2.399963229728653;
 
 interface GraphViewProps {
@@ -393,6 +394,13 @@ function KnowledgeOrbNode({ data }: NodeProps<KnowledgeNode>) {
       }
       title={`${entity.label} · ${subtitle}`}
     >
+      {/* 隐藏句柄：ResizeObserver 测量时会用 DOM 句柄覆盖 handleBounds，没有它会被写成 null 导致边消失。 */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="graph-orb__handle"
+        isConnectable={false}
+      />
       {entity.nodeType === "platform" ? (
         <PlatformLogo platform={entity.label} kind="web_account" className="graph-orb__mark" />
       ) : (
@@ -401,6 +409,12 @@ function KnowledgeOrbNode({ data }: NodeProps<KnowledgeNode>) {
         </span>
       )}
       <span className="graph-orb__label">{entity.label}</span>
+      <Handle
+        type="source"
+        position={Position.Top}
+        className="graph-orb__handle"
+        isConnectable={false}
+      />
     </div>
   );
 }
@@ -672,8 +686,8 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
-            fitViewOptions={{ padding: 0.12, maxZoom: 0.9 }}
-            minZoom={0.2}
+            fitViewOptions={{ padding: 0.1, maxZoom: 0.9 }}
+            minZoom={0.15}
             maxZoom={1.6}
             onInit={setFlow}
             onNodeClick={(_, node) => focusNode(node.id)}

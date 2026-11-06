@@ -2013,6 +2013,18 @@ textarea::placeholder {
   pointer-events: none;
   transform: translateX(-50%);
 }
+.graph-orb__handle {
+  left: 50% !important;
+  top: 50% !important;
+  width: 2px;
+  height: 2px;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
 .graph-edge__label {
   position: absolute;
   z-index: 6;

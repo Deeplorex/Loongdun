@@ -1,5 +1,13 @@
 # Product changes
 
+## 2026-11-07 — 图谱修复首开无边与横向布局
+
+- Type: `bug`
+- 修复：打开关系图谱时连线不显示、点击节点后才出现。根因是 ReactFlow 的节点测量链路——v12 的 `updateNodeInternals`（ResizeObserver 触发）会用节点内 `.react-flow__handle` DOM 元素重算 `handleBounds`，而 orb 节点没有 DOM 句柄元素，测量把声明式句柄解析出的 bounds 覆盖成 `{source: null, target: null}`，边定位失败被跳过；点击节点使 nodes prop 重建、重新解析声明式句柄，边才渲染出来。修复为双保险：节点保留声明式 `handles`（挂载时立即有效）+ 恢复隐藏的 `<Handle>` DOM 元素（测量覆盖时有效，CSS 定位到圆心 2×2 透明），两条路径给出一致几何，边在首帧即正确渲染（实测首帧 ~40ms 全部连线）。
+- 顺带移除了验证过程中加入的 `useNodesInitialized` 门控与 1.5s 兜底定时器：其依赖的 store `nodesInitialized` 标志只在 nodes prop 重算时更新，RO 测量后不刷新，永远等不到翻转；双保险句柄下边可安全直接挂载，代码更简单。
+- 布局：行打包宽度 `PACK_ROW_WIDTH` 1000 → 2400，分量按行铺得更开，初始 `fitView` 呈横向全貌（此前纵向堆叠、fitView 受 minZoom 限制看不全）；`minZoom` 0.2 → 0.15、初始 padding 0.12 → 0.1 配合。
+- Tests: `src/components/GraphView.test.ts` 布局不变量（确定性/不重叠/相邻更近/枢纽更大/分量分隔）与 `src/App.test.tsx` 全部通过；浏览器 `?demo` 实测首帧连线、点击聚焦联动、横向全貌。
+
 ## 2026-11-03 — 关系图谱改为知识图谱形式
 
 - Type: `requirement`
