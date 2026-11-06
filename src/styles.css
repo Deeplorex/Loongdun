@@ -76,7 +76,7 @@
   --danger: #ed8b7e;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
   --shadow-soft: 0 8px 26px rgba(0, 0, 0, 0.25);
-  --graph-line: #50665c;
+  --graph-line: #8fa79c;
   --minimap-mask: rgba(17, 24, 21, 0.78);
 }
 
@@ -101,7 +101,7 @@
     --danger: #ed8b7e;
     --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
     --shadow-soft: 0 8px 26px rgba(0, 0, 0, 0.25);
-    --graph-line: #50665c;
+    --graph-line: #8fa79c;
     --minimap-mask: rgba(17, 24, 21, 0.78);
   }
 }
@@ -1951,48 +1951,79 @@ textarea::placeholder {
   position: relative;
   min-height: 0;
 }
-.graph-node-shell {
-  width: 184px;
-  min-height: 66px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid;
-  border-left-width: 4px;
-  border-radius: 5px;
-  background: var(--paper-raised);
+.graph-orb {
+  display: grid;
+  border: 2px solid var(--node-color);
+  border-radius: 50%;
+  place-items: center;
+  background: color-mix(in srgb, var(--paper-raised), transparent 4%);
   box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    box-shadow 140ms ease,
+    opacity 140ms ease,
+    filter 140ms ease;
 }
-.graph-node-shell--focus {
+.graph-orb:hover {
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--node-color), transparent 65%),
+    0 0 0 4px color-mix(in srgb, var(--node-color), transparent 76%),
+    var(--shadow-soft);
+}
+.graph-orb--focus {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--node-color), transparent 60%),
     var(--shadow);
 }
-.graph-node {
-  display: flex;
-  padding: 10px 12px;
-  text-align: left;
-  flex-direction: column;
-  gap: 3px;
+.graph-orb--muted {
+  opacity: 0.2;
+  filter: saturate(0.35);
 }
-.graph-node small {
+.graph-orb__mark {
+  width: 58%;
+  height: 58%;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.graph-orb__mark > svg {
+  width: 62%;
+  height: 62%;
+}
+.graph-orb__mark--entity {
+  display: grid;
+  border: 0;
   color: var(--node-color);
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  place-items: center;
 }
-.graph-node strong {
+.graph-orb__label {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  max-width: 118px;
+  padding: 2px 8px;
   overflow: hidden;
-  font-size: 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-raised), transparent 10%);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 650;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
-.graph-node span {
-  overflow: hidden;
-  color: var(--text-muted);
-  font-size: 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.graph-edge__label {
+  position: absolute;
+  z-index: 6;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--forest), transparent 72%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-raised), transparent 6%);
+  color: var(--ink-soft);
+  font-size: 9px;
+  font-weight: 650;
+  pointer-events: none;
 }
 .graph-legend {
   position: absolute;
@@ -2321,33 +2352,8 @@ textarea::placeholder {
   background: color-mix(in srgb, var(--platform-logo-color), transparent 90%);
 }
 
-.graph-node {
-  display: grid;
-  min-width: 0;
-  align-items: center;
-  grid-template-columns: 34px minmax(0, 1fr);
-  gap: 9px;
-}
-
-.graph-node__logo {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-}
-
-.graph-node__copy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.graph-node__copy > strong,
-.graph-node__copy > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.graph-orb__label {
+  font-size: 10px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2822,7 +2828,6 @@ button,
 .structure-row small,
 .dependency-card small,
 .graph-head > div > p:last-child,
-.graph-node span,
 .graph-legend span {
   font-size: 11px;
 }
@@ -2852,12 +2857,12 @@ button,
 }
 
 .structure-row strong,
-.dependency-card strong,
-.graph-node strong {
+.dependency-card strong {
   font-size: 13px;
 }
 
-.graph-node small {
+.graph-orb__label,
+.graph-edge__label {
   font-size: 10px;
 }
 
@@ -3813,41 +3818,23 @@ button {
 .structure-row small,
 .dependency-card small,
 .graph-head > div > p:last-child,
-.graph-node span,
 .graph-legend span {
   font-size: 12px;
 }
 
 .project-items strong,
 .structure-row strong,
-.dependency-card strong,
-.graph-node strong {
+.dependency-card strong {
   font-size: 15px;
 }
 
-.graph-node span {
-  font-size: 13px;
+.graph-orb__label {
+  max-width: 150px;
+  font-size: 12px;
 }
 
-.graph-node small {
+.graph-edge__label {
   font-size: 11px;
-}
-
-.graph-node-shell {
-  width: 205px;
-  min-height: 72px;
-  border-radius: 9px;
-}
-
-.graph-node__logo {
-  border-radius: 8px;
-}
-
-.graph-node__logo--entity {
-  display: grid;
-  color: var(--node-color);
-  background: color-mix(in srgb, var(--node-color), transparent 90%);
-  place-items: center;
 }
 
 .graph-legend i.service {
@@ -4327,60 +4314,30 @@ button {
   background: color-mix(in srgb, var(--paper), var(--paper-deep) 28%);
 }
 
-.graph-node-shell {
-  width: 226px;
-  min-height: 82px;
-  border-width: 1px;
-  border-left-width: 4px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--paper-raised), var(--node-color) 4%);
+.graph-orb {
+  background: color-mix(in srgb, var(--paper-raised), var(--node-color) 5%);
   box-shadow: 0 7px 24px rgba(12, 28, 21, 0.13);
-  cursor: pointer;
   transition:
     opacity 150ms ease,
     box-shadow 150ms ease,
     transform 150ms ease;
 }
 
-.graph-node-shell:hover {
+.graph-orb:hover {
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--node-color), transparent 55%),
+    0 0 0 3px color-mix(in srgb, var(--node-color), transparent 55%),
     0 10px 28px rgba(12, 28, 21, 0.18);
   transform: translateY(-2px);
 }
 
-.graph-node-shell--focus {
+.graph-orb--focus {
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--node-color), transparent 42%),
+    0 0 0 4px color-mix(in srgb, var(--node-color), transparent 40%),
     0 12px 30px rgba(12, 28, 21, 0.2);
 }
 
-.graph-node-shell--muted {
-  opacity: 0.24;
-}
-
-.graph-node {
-  min-height: 80px;
-  padding: 13px 14px;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 11px;
-}
-
-.graph-node__logo {
-  width: 40px;
-  height: 40px;
-}
-
-.graph-node small {
-  font-size: 10px;
-}
-
-.graph-node strong {
-  font-size: 14px;
-}
-
-.graph-node span {
-  font-size: 11px;
+.graph-orb--muted {
+  opacity: 0.18;
 }
 
 .react-flow__edge-path {

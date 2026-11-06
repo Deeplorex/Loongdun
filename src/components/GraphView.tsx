@@ -1,11 +1,15 @@
 import {
   Background,
   BackgroundVariant,
+  BaseEdge,
   Controls,
   type Edge,
+  EdgeLabelRenderer,
+  type EdgeProps,
   MarkerType,
   MiniMap,
   type Node,
+  type NodeProps,
   Position,
   ReactFlow,
   type ReactFlowInstance,
@@ -24,7 +28,7 @@ import {
   ServerCog,
   X,
 } from "lucide-react";
-import { useCallback, useId, useMemo, useState } from "react";
+import { type CSSProperties, useCallback, useId, useMemo, useState, type ReactNode } from "react";
 import { translate, useI18n } from "../lib/i18n";
 import { KIND_LABELS } from "../lib/assetTemplates";
 import { formatEnvironment } from "../lib/format";
@@ -48,7 +52,31 @@ const nodeTypeLabels: Record<GraphNode["nodeType"], string> = {
   environment: "环境",
 };
 
+const nodeTypeOrder: Record<GraphNode["nodeType"], number> = {
+  platform: 0,
+  asset: 1,
+  project: 2,
+  service: 3,
+  environment: 4,
+};
+
 const assetKindCodes = new Set<AssetKind>(Object.keys(KIND_LABELS) as AssetKind[]);
+
+const ORB_BASE_RADIUS: Record<GraphNode["nodeType"], number> = {
+  platform: 26,
+  asset: 20,
+  project: 23,
+  service: 18,
+  environment: 17,
+};
+
+// 力导向模拟常量：全部固定，保证同一份数据每次渲染的布局完全一致。
+const LINK_GAP = 78;
+const REPULSION = 34000;
+const COLLISION_GAP = 12;
+const COMPONENT_GAP = 130;
+const PACK_ROW_WIDTH = 1000;
+const GOLDEN_ANGLE = 2.399963229728653;
 
 interface GraphViewProps {
   data: GraphData;
@@ -63,59 +91,178 @@ export interface GraphConnection {
   direction: "incoming" | "outgoing";
 }
 
-function assetColumn(
-  item: GraphNode,
-  incoming: Map<string, GraphEdge[]>,
-  nodesById: Map<string, GraphNode>,
-  visiting = new Set<string>(),
-): number {
-  if (visiting.has(item.id)) return 1;
-  visiting.add(item.id);
-  const depth = (incoming.get(item.id) || []).reduce((maximum, edge) => {
-    const source = nodesById.get(edge.source);
-    if (!source || (source.nodeType !== "platform" && source.nodeType !== "asset")) return maximum;
-    return Math.max(
-      maximum,
-      source.nodeType === "platform"
-        ? 1
-        : assetColumn(source, incoming, nodesById, new Set(visiting)) + 1,
-    );
-  }, 1);
-  return depth;
+export interface GraphLayout {
+  /** 节点圆心坐标（非 ReactFlow 的左上角）。 */
+  positions: Map<string, { x: number; y: number }>;
+  radii: Map<string, number>;
 }
 
-export function calculateGraphPositions(
-  items: GraphNode[],
-  edges: GraphEdge[] = [],
+export function graphNodeRadius(node: GraphNode, degree: number): number {
+  return ORB_BASE_RADIUS[node.nodeType] + Math.min(15, Math.sqrt(degree) * 5);
+}
+
+interface SimNode {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+}
+
+/**
+ * 对一个连通分量运行确定性的力导向模拟：黄金角螺旋初始化，
+ * 斥力 + 弹簧 + 向心力迭代，最后用碰撞松弛保证节点互不重叠。
+ */
+function simulateComponent(
+  component: GraphNode[],
+  radii: Map<string, number>,
+  componentEdges: GraphEdge[],
+  seedPhase: number,
 ): Map<string, { x: number; y: number }> {
-  const positions = new Map<string, { x: number; y: number }>();
+  const ordered = [...component].sort(
+    (left, right) =>
+      nodeTypeOrder[left.nodeType] - nodeTypeOrder[right.nodeType] ||
+      left.label.localeCompare(right.label, "zh-CN"),
+  );
+  const nodes: SimNode[] = ordered.map((entity, index) => {
+    const angle = index * GOLDEN_ANGLE + seedPhase;
+    const distance = 30 * Math.sqrt(index + 0.6);
+    return {
+      id: entity.id,
+      x: Math.cos(angle) * distance,
+      y: Math.sin(angle) * distance,
+      vx: 0,
+      vy: 0,
+      radius: radii.get(entity.id) || 20,
+    };
+  });
+  const indexOf = new Map(nodes.map((node, index) => [node.id, index]));
+  const links = componentEdges
+    .map((edge) => ({ a: indexOf.get(edge.source), b: indexOf.get(edge.target) }))
+    .filter((link) => link.a !== undefined && link.b !== undefined);
+
+  const iterations = nodes.length > 120 ? 240 : 420;
+  let alpha = 1;
+  for (let step = 0; step < iterations; step++) {
+    alpha = Math.max(0.04, alpha * 0.992);
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i];
+        const b = nodes[j];
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distanceSq = dx * dx + dy * dy;
+        if (distanceSq < 0.01) {
+          dx = 0.4;
+          dy = (i % 2 === 0 ? 1 : -1) * 0.4;
+          distanceSq = dx * dx + dy * dy;
+        }
+        const distance = Math.sqrt(distanceSq);
+        const force = ((REPULSION / distanceSq) * alpha) / 2;
+        const fx = (dx / distance) * force;
+        const fy = (dy / distance) * force;
+        a.vx -= fx;
+        a.vy -= fy;
+        b.vx += fx;
+        b.vy += fy;
+      }
+    }
+    for (const link of links) {
+      const a = nodes[link.a as number];
+      const b = nodes[link.b as number];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+      const rest = Math.max(112, a.radius + b.radius + LINK_GAP);
+      const stretch = distance - rest;
+      // 压缩时刚性更强，避免链路蜷成一团；拉伸时温和回拉。
+      const force = (stretch > 0 ? stretch * 0.08 : stretch * 0.4) * alpha;
+      const fx = (dx / distance) * force;
+      const fy = (dy / distance) * force;
+      a.vx += fx;
+      a.vy += fy;
+      b.vx -= fx;
+      b.vy -= fy;
+    }
+    let centerX = 0;
+    let centerY = 0;
+    for (const node of nodes) {
+      centerX += node.x;
+      centerY += node.y;
+    }
+    centerX /= nodes.length;
+    centerY /= nodes.length;
+    for (const node of nodes) {
+      node.vx += (centerX - node.x) * 0.004 * alpha;
+      node.vy += (centerY - node.y) * 0.004 * alpha;
+      node.vx *= 0.6;
+      node.vy *= 0.6;
+      const speed = Math.hypot(node.vx, node.vy);
+      const cap = 14 * alpha + 1;
+      if (speed > cap) {
+        node.vx = (node.vx / speed) * cap;
+        node.vy = (node.vy / speed) * cap;
+      }
+      node.x += node.vx;
+      node.y += node.vy;
+    }
+  }
+
+  // 碰撞松弛：把重叠的圆沿连线推开，最多 80 轮。
+  for (let pass = 0; pass < 80; pass++) {
+    let moved = false;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i];
+        const b = nodes[j];
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distance = Math.hypot(dx, dy);
+        const minimum = a.radius + b.radius + COLLISION_GAP;
+        if (distance >= minimum) continue;
+        if (distance < 0.01) {
+          dx = 0.4;
+          dy = (i % 2 === 0 ? 1 : -1) * 0.4;
+          distance = Math.hypot(dx, dy);
+        }
+        const push = (minimum - distance) / 2;
+        const nx = (dx / distance) * push;
+        const ny = (dy / distance) * push;
+        a.x -= nx;
+        a.y -= ny;
+        b.x += nx;
+        b.y += ny;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+
+  return new Map(nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+}
+
+export function buildGraphLayout(items: GraphNode[], edges: GraphEdge[] = []): GraphLayout {
   const nodesById = new Map(items.map((item) => [item.id, item]));
   const validEdges = edges.filter(
     (edge) => nodesById.has(edge.source) && nodesById.has(edge.target),
   );
-  const incoming = new Map<string, GraphEdge[]>();
   const neighbors = new Map(items.map((item) => [item.id, new Set<string>()]));
+  const degrees = new Map<string, number>();
   for (const edge of validEdges) {
-    incoming.set(edge.target, [...(incoming.get(edge.target) || []), edge]);
     neighbors.get(edge.source)?.add(edge.target);
     neighbors.get(edge.target)?.add(edge.source);
+    degrees.set(edge.source, (degrees.get(edge.source) || 0) + 1);
+    degrees.set(edge.target, (degrees.get(edge.target) || 0) + 1);
   }
-
-  const assetColumns = new Map(
-    items
-      .filter((item) => item.nodeType === "asset")
-      .map((item) => [item.id, assetColumn(item, incoming, nodesById)]),
+  const radii = new Map(
+    items.map((item) => [item.id, graphNodeRadius(item, degrees.get(item.id) || 0)]),
   );
+
   const components: GraphNode[][] = [];
-  const isolated: GraphNode[] = [];
   const visited = new Set<string>();
   for (const item of items) {
     if (visited.has(item.id)) continue;
-    if (neighbors.get(item.id)?.size === 0) {
-      visited.add(item.id);
-      isolated.push(item);
-      continue;
-    }
     const component: GraphNode[] = [];
     const pending = [item.id];
     visited.add(item.id);
@@ -132,65 +279,57 @@ export function calculateGraphPositions(
     }
     components.push(component);
   }
-  if (isolated.length) components.push(isolated);
-  components.sort((left, right) => right.length - left.length);
+  const componentKey = (component: GraphNode[]) =>
+    component
+      .map((item) => item.id)
+      .sort((left, right) => (left < right ? -1 : 1))
+      .join(" ");
+  components.sort(
+    (left, right) =>
+      right.length - left.length || (componentKey(left) < componentKey(right) ? -1 : 1),
+  );
 
-  const origin = 48;
-  const nodeWidth = 205;
-  const nodeHeight = 72;
-  const columnStep = 220;
-  const rowStep = 112;
-  const componentGap = 48;
-  const rowWidth = 1120;
-  let componentLeft = origin;
-  let componentTop = origin;
-  let packedRowHeight = 0;
-  for (const component of components) {
-    const componentAssetColumn = Math.max(
-      1,
-      ...component
-        .filter((item) => item.nodeType === "asset")
-        .map((item) => assetColumns.get(item.id) || 1),
-    );
-    const rawColumnOf = (item: GraphNode) => {
-      if (item.nodeType === "platform") return 0;
-      if (item.nodeType === "asset") return assetColumns.get(item.id) || 1;
-      if (item.nodeType === "project") return componentAssetColumn + 1;
-      if (item.nodeType === "service") return componentAssetColumn + 2;
-      return componentAssetColumn + 3;
-    };
-    const minimumColumn = Math.min(...component.map(rawColumnOf));
-    const columnOf = (item: GraphNode) => rawColumnOf(item) - minimumColumn;
-    const columns = new Map<number, GraphNode[]>();
+  const positions = new Map<string, { x: number; y: number }>();
+  let cursorX = 0;
+  let cursorY = 0;
+  let rowHeight = 0;
+  components.forEach((component, componentIndex) => {
+    const componentIds = new Set(component.map((item) => item.id));
+    const componentEdges = validEdges
+      .filter((edge) => componentIds.has(edge.source) && componentIds.has(edge.target))
+      .sort((left, right) => (left.id < right.id ? -1 : 1));
+    const local = simulateComponent(component, radii, componentEdges, componentIndex * 1.7);
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
     for (const item of component) {
-      const column = columnOf(item);
-      columns.set(column, [...(columns.get(column) || []), item]);
+      const center = local.get(item.id) || { x: 0, y: 0 };
+      const radius = radii.get(item.id) || 20;
+      const labelAllowance = radius + 26;
+      minX = Math.min(minX, center.x - radius);
+      minY = Math.min(minY, center.y - radius);
+      maxX = Math.max(maxX, center.x + radius);
+      maxY = Math.max(maxY, center.y + labelAllowance);
     }
-    for (const columnItems of columns.values()) {
-      columnItems.sort((left, right) => left.label.localeCompare(right.label, "zh-CN"));
+    const width = maxX - minX;
+    const height = maxY - minY;
+    if (cursorX > 0 && cursorX + width > PACK_ROW_WIDTH) {
+      cursorX = 0;
+      cursorY += rowHeight + COMPONENT_GAP;
+      rowHeight = 0;
     }
-    const componentRows = Math.max(1, ...[...columns.values()].map((column) => column.length));
-    const componentColumns = Math.max(...columns.keys()) + 1;
-    const componentWidth = (componentColumns - 1) * columnStep + nodeWidth;
-    const componentHeight = (componentRows - 1) * rowStep + nodeHeight;
-    if (componentLeft > origin && componentLeft + componentWidth > origin + rowWidth) {
-      componentLeft = origin;
-      componentTop += packedRowHeight + componentGap;
-      packedRowHeight = 0;
-    }
-    for (const [column, columnItems] of columns) {
-      const topOffset = ((componentRows - columnItems.length) * rowStep) / 2;
-      columnItems.forEach((item, row) => {
-        positions.set(item.id, {
-          x: componentLeft + column * columnStep,
-          y: componentTop + topOffset + row * rowStep,
-        });
+    for (const item of component) {
+      const center = local.get(item.id) || { x: 0, y: 0 };
+      positions.set(item.id, {
+        x: center.x - minX + cursorX,
+        y: center.y - minY + cursorY,
       });
     }
-    componentLeft += componentWidth + componentGap;
-    packedRowHeight = Math.max(packedRowHeight, componentHeight);
-  }
-  return positions;
+    cursorX += width + COMPONENT_GAP;
+    rowHeight = Math.max(rowHeight, height);
+  });
+  return { positions, radii };
 }
 
 export function filterGraphNodes(items: GraphNode[], query: string): GraphNode[] {
@@ -225,11 +364,109 @@ export function getGraphConnections(data: GraphData, nodeId: string): GraphConne
   });
 }
 
+type KnowledgeNodeData = {
+  entity: GraphNode;
+  radius: number;
+  muted: boolean;
+  focused: boolean;
+  subtitle: string;
+  icon: ReactNode;
+};
+
+type KnowledgeNode = Node<KnowledgeNodeData, "knowledge">;
+
+function KnowledgeOrbNode({ data }: NodeProps<KnowledgeNode>) {
+  const { entity, radius, muted, focused, subtitle, icon } = data;
+  const classes = ["graph-orb"];
+  if (focused) classes.push("graph-orb--focus");
+  if (muted) classes.push("graph-orb--muted");
+  const size = radius * 2;
+  return (
+    <div
+      className={classes.join(" ")}
+      style={
+        {
+          width: size,
+          height: size,
+          "--node-color": palette[entity.nodeType],
+        } as CSSProperties
+      }
+      title={`${entity.label} · ${subtitle}`}
+    >
+      {entity.nodeType === "platform" ? (
+        <PlatformLogo platform={entity.label} kind="web_account" className="graph-orb__mark" />
+      ) : (
+        <span className="graph-orb__mark graph-orb__mark--entity" aria-hidden="true">
+          {icon}
+        </span>
+      )}
+      <span className="graph-orb__label">{entity.label}</span>
+    </div>
+  );
+}
+
+const nodeTypes = { knowledge: KnowledgeOrbNode };
+
+type KnowledgeEdgeData = {
+  sourceRadius: number;
+  targetRadius: number;
+};
+
+type KnowledgeEdge = Edge<KnowledgeEdgeData, "knowledge">;
+
+function KnowledgeLinkEdge({
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  label,
+  markerEnd,
+  style,
+  data,
+}: EdgeProps<KnowledgeEdge>) {
+  const dx = targetX - sourceX;
+  const dy = targetY - sourceY;
+  const distance = Math.hypot(dx, dy) || 1;
+  // 从圆心连线，再按两端半径裁掉被圆盘盖住的部分，让箭头落在目标圆边缘。
+  const startTrim = Math.min((data?.sourceRadius || 20) + 3, distance / 2);
+  const endTrim = Math.min((data?.targetRadius || 20) + 6, distance / 2);
+  const x1 = sourceX + (dx / distance) * startTrim;
+  const y1 = sourceY + (dy / distance) * startTrim;
+  const x2 = targetX - (dx / distance) * endTrim;
+  const y2 = targetY - (dy / distance) * endTrim;
+
+  return (
+    <>
+      <BaseEdge
+        path={`M ${x1},${y1} L ${x2},${y2}`}
+        markerEnd={markerEnd}
+        style={style}
+        interactionWidth={16}
+      />
+      {label ? (
+        <EdgeLabelRenderer>
+          <span
+            className="graph-edge__label"
+            style={{
+              transform: `translate(-50%, -50%) translate(${(x1 + x2) / 2}px, ${(y1 + y2) / 2}px)`,
+            }}
+          >
+            {label}
+          </span>
+        </EdgeLabelRenderer>
+      ) : null}
+    </>
+  );
+}
+
+const edgeTypes = { knowledge: KnowledgeLinkEdge };
+
 export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps) {
   const { language, t } = useI18n();
   const searchId = useId();
   const [query, setQuery] = useState("");
-  const [flow, setFlow] = useState<ReactFlowInstance<Node, Edge>>();
+  const [flow, setFlow] = useState<ReactFlowInstance<KnowledgeNode, KnowledgeEdge>>();
+  const layout = useMemo(() => buildGraphLayout(data.nodes, data.edges), [data]);
   const matches = useMemo(() => filterGraphNodes(data.nodes, query), [data.nodes, query]);
   const matchedIds = useMemo(() => new Set(matches.map((node) => node.id)), [matches]);
   const selectedNode = useMemo(
@@ -277,13 +514,14 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
   const showGlobal = useCallback(() => {
     setQuery("");
     onFocus(undefined);
-    void flow?.fitView({ padding: 0.08, maxZoom: 0.95, duration: 260 });
+    void flow?.fitView({ padding: 0.12, maxZoom: 0.9, duration: 260 });
   }, [flow, onFocus]);
 
-  const nodes = useMemo<Node[]>(() => {
-    const positions = calculateGraphPositions(data.nodes, data.edges);
+  const nodes = useMemo<KnowledgeNode[]>(() => {
     const hasQuery = query.trim().length > 0;
     return data.nodes.map((item) => {
+      const radius = layout.radii.get(item.id) || 20;
+      const center = layout.positions.get(item.id) || { x: 0, y: 0 };
       const GraphIcon =
         item.nodeType === "project"
           ? Boxes
@@ -292,83 +530,59 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
             : item.nodeType === "environment"
               ? Layers3
               : KeyRound;
-      const classes = ["graph-node-shell"];
-      if (focusId === item.id) classes.push("graph-node-shell--focus");
-      if (
-        (focusId && !focusedNeighborhood.has(item.id)) ||
-        (hasQuery && !matchedIds.has(item.id))
-      ) {
-        classes.push("graph-node-shell--muted");
-      }
+      const iconSize = Math.max(15, Math.round(radius * 0.62));
       return {
         id: item.id,
-        position: positions.get(item.id) || { x: 0, y: 0 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
+        type: "knowledge",
+        position: { x: center.x - radius, y: center.y - radius },
+        // 顶层 width/height 让小地图与 fitView 在首次测量前就有正确尺寸。
+        width: radius * 2,
+        height: radius * 2,
+        // 声明式句柄：圆心锚点，边从这里裁剪起止，不依赖 DOM 测量。
+        handles: [
+          { id: null, type: "target", position: Position.Top, x: radius, y: radius },
+          { id: null, type: "source", position: Position.Top, x: radius, y: radius },
+        ],
         data: {
-          label: (
-            <div className="graph-node">
-              {item.nodeType === "platform" ? (
-                <PlatformLogo
-                  platform={item.label}
-                  kind="web_account"
-                  className="graph-node__logo"
-                />
-              ) : (
-                <span className="graph-node__logo graph-node__logo--entity" aria-hidden="true">
-                  <GraphIcon size={19} />
-                </span>
-              )}
-              <span className="graph-node__copy">
-                <small>{t(nodeTypeLabels[item.nodeType])}</small>
-                <strong>{item.label}</strong>
-                <span>{subtitleFor(item)}</span>
-              </span>
-            </div>
-          ),
+          entity: item,
+          radius,
+          focused: focusId === item.id,
+          muted:
+            Boolean(focusId && !focusedNeighborhood.has(item.id)) ||
+            Boolean(hasQuery && !matchedIds.has(item.id)),
+          subtitle: subtitleFor(item),
+          icon: <GraphIcon size={iconSize} />,
         },
-        className: classes.join(" "),
-        style: {
-          borderColor: palette[item.nodeType],
-          "--node-color": palette[item.nodeType],
-        } as React.CSSProperties,
+        style: { width: radius * 2, height: radius * 2, borderColor: palette[item.nodeType] },
       };
     });
-  }, [data.edges, data.nodes, focusId, focusedNeighborhood, matchedIds, query, subtitleFor, t]);
+  }, [data.nodes, focusId, focusedNeighborhood, layout, matchedIds, query, subtitleFor]);
 
-  const edges = useMemo<Edge[]>(
+  const edges = useMemo<KnowledgeEdge[]>(
     () =>
       data.edges.map((item) => {
         const connected = focusId === item.source || focusId === item.target;
+        const color = connected ? "var(--forest)" : "var(--graph-line)";
         return {
           id: item.id,
           source: item.source,
           target: item.target,
-          label: t(item.label),
-          type: "smoothstep",
-          animated: connected,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 14,
-            height: 14,
-            color: connected ? "var(--forest)" : "var(--graph-line)",
+          type: "knowledge",
+          data: {
+            sourceRadius: layout.radii.get(item.source) || 20,
+            targetRadius: layout.radii.get(item.target) || 20,
           },
-          pathOptions: { borderRadius: 14, offset: 30 },
-          interactionWidth: 18,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 13, height: 13, color },
           zIndex: connected ? 2 : 0,
           style: {
-            stroke: connected ? "var(--forest)" : "var(--graph-line)",
-            strokeWidth: connected ? 2.4 : 1.7,
-            opacity: focusId && !connected ? 0.22 : 0.82,
+            stroke: color,
+            strokeWidth: connected ? 2.2 : 1.5,
+            opacity: focusId && !connected ? 0.16 : 0.78,
           },
-          labelStyle: { fill: "var(--ink-soft)", fontSize: 11, fontWeight: 650 },
-          labelShowBg: true,
-          labelBgStyle: { fill: "var(--paper-raised)", fillOpacity: 0.94 },
-          labelBgPadding: [5, 3] as [number, number],
-          labelBgBorderRadius: 4,
+          label: connected ? t(item.label) : undefined,
         };
       }),
-    [data.edges, focusId, t],
+    [data.edges, focusId, layout.radii, t],
   );
 
   const openLabel = selectedNode
@@ -452,15 +666,18 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
         </div>
       ) : (
         <div className="graph-canvas">
-          <ReactFlow
+          <ReactFlow<KnowledgeNode, KnowledgeEdge>
             nodes={nodes}
             edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             fitView
-            fitViewOptions={{ padding: 0.08, maxZoom: 0.95 }}
-            minZoom={0.35}
-            maxZoom={1.5}
+            fitViewOptions={{ padding: 0.12, maxZoom: 0.9 }}
+            minZoom={0.2}
+            maxZoom={1.6}
             onInit={setFlow}
             onNodeClick={(_, node) => focusNode(node.id)}
+            onNodeDoubleClick={(_, node) => onOpenNode(node.data.entity)}
             nodesConnectable={false}
             proOptions={{ hideAttribution: true }}
           >
