@@ -1,5 +1,12 @@
 # Product changes
 
+## 2026-11-10 — 图谱不再把平台当作实体节点
+
+- Type: `bug`
+- 平台只是凭证的一个属性，不是独立实体；关系图谱此前把所有凭证的 platform 字段去重后为每个平台生成一个节点（品牌 Logo、“平台账号”副标题），并以“提供”边挂到各凭证下，等于把平台当成了一个凭证。本次移除平台节点与“提供”边：图谱只保留凭证/产品/产品组成/环境四类节点与它们之间的真实关系（父子关联、凭证间关系、产品包含、环境部署、使用绑定）。
+- 后端 `graph_data`（`src-tauri/src/storage.rs`）不再收集平台集合、不生成 `platform:*` 节点与 `platform-{asset}` 边；`?demo` 演示模式 `demoApi.ts` 的 `graphData()` 同步移除。前端 `GraphNode.nodeType` 联合类型收窄为四种，`GraphView.tsx` 移除平台调色板/图例/基础半径/PlatformLogo 渲染、“平台账号”副标题与“查看平台凭证”打开分支，头部说明与搜索占位文案随之更新；`App.tsx` 的 `openGraphNode` 删除平台跳转分支；`i18n.tsx` 清理对应词条。平台品牌 Logo 组件仍在凭证列表与详情面板使用，不受影响。
+- Tests: `src-tauri/src/storage.rs` 新增 `graph_data_keeps_platforms_as_attributes_not_nodes`（多个凭证共享同一平台也不产生平台节点/“提供”边，父子关联边保留）；`src/components/GraphView.test.ts` 夹具全部改用真实存在的节点类型（凭证/产品/产品组成/环境）。`cargo test storage::`、`vitest run src/components/GraphView.test.ts src/App.test.tsx`、`pnpm typecheck` 通过。
+
 ## 2026-11-07 — 图谱修复首开无边与横向布局
 
 - Type: `bug`

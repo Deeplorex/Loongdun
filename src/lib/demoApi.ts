@@ -235,26 +235,8 @@ function detail(assetId: string): AssetDetail {
 function graphData(): GraphData {
   const nodes: GraphData["nodes"] = [];
   const edges: GraphData["edges"] = [];
-  const platforms = new Map<string, string>();
+  // 平台只是凭证属性，不是独立实体：不生成平台节点或“提供”边。
   for (const asset of assets.filter((item) => !item.deletedAt)) {
-    if (asset.platform) {
-      const platformId = `platform-${asset.platform.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-      if (!platforms.has(platformId)) {
-        platforms.set(platformId, asset.platform);
-        nodes.push({
-          id: platformId,
-          nodeType: "platform",
-          label: asset.platform,
-          subtitle: "平台",
-        });
-      }
-      edges.push({
-        id: `${platformId}-${asset.id}`,
-        source: platformId,
-        target: asset.id,
-        label: "提供",
-      });
-    }
     nodes.push({
       id: asset.id,
       nodeType: "asset",

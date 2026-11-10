@@ -962,25 +962,11 @@ pub fn delete_project(connection: &Connection, project_id: &str) -> AppResult<()
 }
 
 pub fn graph_data(connection: &Connection) -> AppResult<GraphData> {
+    // 平台只是凭证的属性，不是独立实体：不再为平台生成节点或“提供”边，
+    // 图谱只保留凭证/产品/产品组成/环境之间的真实关系。
     let assets = list_assets(connection, &AssetFilter::default())?;
     let projects = list_projects(connection)?;
     let mut graph = GraphData::default();
-    let mut platforms = std::collections::BTreeSet::new();
-    for asset in &assets {
-        if !asset.platform.trim().is_empty() {
-            platforms.insert(asset.platform.trim().to_string());
-        }
-    }
-    for platform in platforms {
-        let id = format!("platform:{}", platform.to_lowercase());
-        graph.nodes.push(GraphNode {
-            id,
-            node_type: "platform".into(),
-            label: platform,
-            subtitle: "平台账号".into(),
-            status: None,
-        });
-    }
     for asset in &assets {
         graph.nodes.push(GraphNode {
             id: asset.id.clone(),
@@ -989,14 +975,6 @@ pub fn graph_data(connection: &Connection) -> AppResult<GraphData> {
             subtitle: format!("{} · {}", asset.kind.as_str(), asset.environment),
             status: asset.expires_at.clone(),
         });
-        if !asset.platform.trim().is_empty() {
-            graph.edges.push(GraphEdge {
-                id: format!("platform-{}", asset.id),
-                source: format!("platform:{}", asset.platform.trim().to_lowercase()),
-                target: asset.id.clone(),
-                label: "提供".into(),
-            });
-        }
         if let Some(parent) = &asset.parent_asset_id {
             graph.edges.push(GraphEdge {
                 id: format!("parent-{}", asset.id),
@@ -1528,6 +1506,73 @@ mod migration_tests {
                 .asset_relations
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn graph_data_keeps_platforms_as_attributes_not_nodes() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("vault.db");
+        let mut connection =
+            initialize_database(&path, &[7_u8; 32], "graph-platform-vault").unwrap();
+        let account = save_asset(
+            &mut connection,
+            AssetInput {
+                id: None,
+                kind: AssetKind::WebAccount,
+                title: "网易邮箱".into(),
+                platform: "网易".into(),
+                username_hint: "me@163.com".into(),
+                environment: String::new(),
+                notes: String::new(),
+                favorite: false,
+                expires_at: None,
+                parent_asset_id: None,
+                folder_id: None,
+                tags: vec![],
+                fields: vec![],
+            },
+        )
+        .unwrap();
+        let api_key = save_asset(
+            &mut connection,
+            AssetInput {
+                id: None,
+                kind: AssetKind::ApiCredential,
+                title: "网易一键登录密钥".into(),
+                platform: "网易".into(),
+                username_hint: String::new(),
+                environment: String::new(),
+                notes: String::new(),
+                favorite: false,
+                expires_at: None,
+                parent_asset_id: Some(account.summary.id.clone()),
+                folder_id: None,
+                tags: vec![],
+                fields: vec![],
+            },
+        )
+        .unwrap();
+
+        let graph = graph_data(&connection).unwrap();
+        // 平台只是凭证属性：多个凭证共享同一平台也不生成平台节点或“提供”边。
+        assert!(graph.nodes.iter().all(|node| node.node_type != "platform"));
+        let mut node_ids: Vec<&str> = graph.nodes.iter().map(|node| node.id.as_str()).collect();
+        node_ids.sort();
+        let mut expected = vec![account.summary.id.as_str(), api_key.summary.id.as_str()];
+        expected.sort_unstable();
+        assert_eq!(node_ids, expected);
+        assert!(
+            graph
+                .edges
+                .iter()
+                .all(|edge| edge.label != "提供" && !edge.source.starts_with("platform:"))
+        );
+        // 凭证间的真实关系（父子关联）仍保留。
+        assert!(graph.edges.iter().any(|edge| {
+            edge.source == account.summary.id
+                && edge.target == api_key.summary.id
+                && edge.label == "关联"
+        }));
     }
 
     #[test]

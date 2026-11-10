@@ -457,11 +457,6 @@ export default function App() {
       setSelectedId(node.id);
       return;
     }
-    if (node.nodeType === "platform") {
-      setQuery(node.label);
-      setNavigation({ view: "assets" });
-      return;
-    }
     const projectId =
       node.nodeType === "project"
         ? node.id

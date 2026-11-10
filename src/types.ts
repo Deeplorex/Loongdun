@@ -208,7 +208,7 @@ export interface Project {
 
 export interface GraphNode {
   id: string;
-  nodeType: "platform" | "asset" | "project" | "service" | "environment";
+  nodeType: "asset" | "project" | "service" | "environment";
   label: string;
   subtitle: string;
   status?: string | null;

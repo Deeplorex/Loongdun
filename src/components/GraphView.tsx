@@ -35,10 +35,8 @@ import { KIND_LABELS } from "../lib/assetTemplates";
 import { formatEnvironment } from "../lib/format";
 import type { AssetKind } from "../types";
 import type { GraphData, GraphEdge, GraphNode } from "../types";
-import { PlatformLogo } from "./PlatformLogo";
 
 const palette: Record<GraphNode["nodeType"], string> = {
-  platform: "#3f9987",
   asset: "#d66c47",
   project: "#39728a",
   service: "#b58a4a",
@@ -46,7 +44,6 @@ const palette: Record<GraphNode["nodeType"], string> = {
 };
 
 const nodeTypeLabels: Record<GraphNode["nodeType"], string> = {
-  platform: "平台",
   asset: "凭证",
   project: "产品",
   service: "产品组成",
@@ -54,17 +51,15 @@ const nodeTypeLabels: Record<GraphNode["nodeType"], string> = {
 };
 
 const nodeTypeOrder: Record<GraphNode["nodeType"], number> = {
-  platform: 0,
-  asset: 1,
-  project: 2,
-  service: 3,
-  environment: 4,
+  asset: 0,
+  project: 1,
+  service: 2,
+  environment: 3,
 };
 
 const assetKindCodes = new Set<AssetKind>(Object.keys(KIND_LABELS) as AssetKind[]);
 
 const ORB_BASE_RADIUS: Record<GraphNode["nodeType"], number> = {
-  platform: 26,
   asset: 20,
   project: 23,
   service: 18,
@@ -401,13 +396,9 @@ function KnowledgeOrbNode({ data }: NodeProps<KnowledgeNode>) {
         className="graph-orb__handle"
         isConnectable={false}
       />
-      {entity.nodeType === "platform" ? (
-        <PlatformLogo platform={entity.label} kind="web_account" className="graph-orb__mark" />
-      ) : (
-        <span className="graph-orb__mark graph-orb__mark--entity" aria-hidden="true">
-          {icon}
-        </span>
-      )}
+      <span className="graph-orb__mark graph-orb__mark--entity" aria-hidden="true">
+        {icon}
+      </span>
       <span className="graph-orb__label">{entity.label}</span>
       <Handle
         type="source"
@@ -497,7 +488,6 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
   );
   const subtitleFor = useCallback(
     (node: GraphNode) => {
-      if (node.nodeType === "platform") return t("平台账号");
       if (node.nodeType === "project") return t("产品");
       if (node.nodeType === "environment") return formatEnvironment(node.subtitle, language);
       if (node.nodeType === "service") return node.subtitle;
@@ -602,9 +592,7 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
   const openLabel = selectedNode
     ? selectedNode.nodeType === "asset"
       ? t("打开凭证详情")
-      : selectedNode.nodeType === "platform"
-        ? t("查看平台凭证")
-        : t("打开产品详情")
+      : t("打开产品详情")
     : "";
 
   return (
@@ -612,7 +600,7 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
       <header className="graph-head">
         <div>
           <h1>{t("关系图谱")}</h1>
-          <p>{t("查看每个凭证属于哪个平台，又被哪些产品组成使用。")}</p>
+          <p>{t("查看凭证之间的关联，以及产品、产品组成和环境如何使用它们。")}</p>
         </div>
         <div className="graph-head__actions">
           <div className="graph-search">
@@ -634,7 +622,7 @@ export function GraphView({ data, focusId, onFocus, onOpenNode }: GraphViewProps
                 }
                 if (event.key === "Escape") setQuery("");
               }}
-              placeholder={t("搜索平台、凭证、产品、产品组成…")}
+              placeholder={t("搜索凭证、产品、产品组成、环境…")}
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} aria-label={t("清除节点搜索")}>

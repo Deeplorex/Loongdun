@@ -6,14 +6,12 @@ const chainNodes: GraphNode[] = [
   { id: "service-1", nodeType: "service", label: "OCR", subtitle: "产品组成" },
   { id: "asset-key", nodeType: "asset", label: "OCR Key", subtitle: "api_credential" },
   { id: "environment-1", nodeType: "environment", label: "Prod", subtitle: "环境" },
-  { id: "platform-1", nodeType: "platform", label: "阿里云", subtitle: "平台账号" },
   { id: "asset-account", nodeType: "asset", label: "阿里云账号", subtitle: "web_account" },
   { id: "project-1", nodeType: "project", label: "票据识别", subtitle: "产品" },
 ];
 
 const chainEdges: GraphEdge[] = [
-  { id: "platform", source: "platform-1", target: "asset-account", label: "签发" },
-  { id: "child", source: "asset-account", target: "asset-key", label: "子凭证" },
+  { id: "issued", source: "asset-account", target: "asset-key", label: "签发" },
   { id: "uses", source: "asset-key", target: "project-1", label: "使用" },
   { id: "contains", source: "project-1", target: "service-1", label: "包含" },
   { id: "deploys", source: "service-1", target: "environment-1", label: "部署" },
@@ -73,7 +71,7 @@ describe("graph layout", () => {
 
   it("hubs grow with their connection count", () => {
     const hubNodes: GraphNode[] = [
-      { id: "platform", nodeType: "platform", label: "平台", subtitle: "平台账号" },
+      { id: "asset-hub", nodeType: "asset", label: "主账号", subtitle: "web_account" },
       ...[1, 2, 3, 4].map((index) => ({
         id: `asset-${index}`,
         nodeType: "asset" as const,
@@ -83,12 +81,12 @@ describe("graph layout", () => {
     ];
     const hubEdges = hubNodes.slice(1).map((asset) => ({
       id: `issue-${asset.id}`,
-      source: "platform",
+      source: "asset-hub",
       target: asset.id,
-      label: "签发",
+      label: "关联",
     }));
     const { radii } = buildGraphLayout(hubNodes, hubEdges);
-    const hubRadius = radii.get("platform") || 0;
+    const hubRadius = radii.get("asset-hub") || 0;
     for (const asset of hubNodes.slice(1)) {
       expect(hubRadius).toBeGreaterThan(radii.get(asset.id) || 0);
     }
@@ -96,19 +94,19 @@ describe("graph layout", () => {
 
   it("keeps separate relationships apart", () => {
     const nodes: GraphNode[] = [
-      { id: "platform-a", nodeType: "platform", label: "A", subtitle: "平台" },
-      { id: "asset-a", nodeType: "asset", label: "A Key", subtitle: "凭证" },
-      { id: "platform-b", nodeType: "platform", label: "B", subtitle: "平台" },
-      { id: "asset-b", nodeType: "asset", label: "B Key", subtitle: "凭证" },
+      { id: "project-a", nodeType: "project", label: "A", subtitle: "产品" },
+      { id: "service-a", nodeType: "service", label: "A 服务", subtitle: "产品组成" },
+      { id: "project-b", nodeType: "project", label: "B", subtitle: "产品" },
+      { id: "service-b", nodeType: "service", label: "B 服务", subtitle: "产品组成" },
     ];
     const edges = [
-      { id: "a", source: "platform-a", target: "asset-a", label: "提供" },
-      { id: "b", source: "platform-b", target: "asset-b", label: "提供" },
+      { id: "a", source: "project-a", target: "service-a", label: "包含" },
+      { id: "b", source: "project-b", target: "service-b", label: "包含" },
     ];
     const { positions } = buildGraphLayout(nodes, edges);
-    const partner = distanceOf(positions, "platform-a", "asset-a");
-    for (const foreign of ["platform-b", "asset-b"]) {
-      expect(distanceOf(positions, "platform-a", foreign)).toBeGreaterThan(partner);
+    const partner = distanceOf(positions, "project-a", "service-a");
+    for (const foreign of ["project-b", "service-b"]) {
+      expect(distanceOf(positions, "project-a", foreign)).toBeGreaterThan(partner);
     }
   });
 
@@ -126,7 +124,7 @@ describe("graph layout", () => {
 
   it("builds the selected node detail from incoming and outgoing edges", () => {
     const nodes: GraphNode[] = [
-      { id: "platform-1", nodeType: "platform", label: "Google", subtitle: "平台账号" },
+      { id: "email-1", nodeType: "asset", label: "注册邮箱", subtitle: "web_account" },
       { id: "asset-1", nodeType: "asset", label: "Gemini API", subtitle: "API 凭证" },
       { id: "project-1", nodeType: "project", label: "AI 检测", subtitle: "产品" },
     ];
@@ -134,7 +132,7 @@ describe("graph layout", () => {
       {
         nodes,
         edges: [
-          { id: "issued", source: "platform-1", target: "asset-1", label: "签发" },
+          { id: "recover", source: "email-1", target: "asset-1", label: "用于找回" },
           { id: "used", source: "asset-1", target: "project-1", label: "调用" },
         ],
       },
@@ -142,7 +140,7 @@ describe("graph layout", () => {
     );
 
     expect(connections.map((item) => [item.node.id, item.direction, item.edge.label])).toEqual([
-      ["platform-1", "incoming", "签发"],
+      ["email-1", "incoming", "用于找回"],
       ["project-1", "outgoing", "调用"],
     ]);
   });
