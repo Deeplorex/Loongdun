@@ -715,6 +715,16 @@ export default function App() {
           onChangePassword={(currentPassword, nextPassword) =>
             run(() => api.changeMasterPassword(currentPassword, nextPassword), undefined, false)
           }
+          onResetPassword={(nextPassword, recoveryKey) =>
+            run(
+              () =>
+                recoveryKey
+                  ? api.resetMasterPasswordWithRecovery(recoveryKey, nextPassword)
+                  : api.resetMasterPasswordWithSystem(nextPassword),
+              undefined,
+              false,
+            )
+          }
         />
       )}
       {recoveryKey && (

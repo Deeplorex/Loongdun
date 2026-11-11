@@ -286,6 +286,59 @@ impl AppState {
         })
     }
 
+    /// 忘记主密码时的重置共用逻辑：`verified_key` 是用户刚用恢复密钥或
+    /// Windows Hello 重新解出的库密钥，与当前会话一致即视为授权通过，
+    /// 随后把库密钥重新包进新主密码；恢复密钥与凭证数据不变。
+    fn rewrite_master_password(
+        session: &VaultSession,
+        verified_key: &[u8],
+        next: &str,
+    ) -> AppResult<()> {
+        if next.chars().count() < 10 {
+            return Err(AppError::Validation("新主密码至少需要 10 个字符".into()));
+        }
+        if verified_key != session.key.as_slice() {
+            return Err(AppError::InvalidCredential);
+        }
+        let mut envelope = Self::read_envelope(&session.vault_dir)?;
+        envelope.password = wrap_key(&session.key, next)?;
+        Self::write_json_atomic(&Self::envelope_path(&session.vault_dir), &envelope)
+    }
+
+    /// 忘记主密码：输入恢复密钥重新验证后设置新主密码。
+    pub fn reset_master_password_with_recovery(&self, recovery: &str, next: &str) -> AppResult<()> {
+        self.with_session(|session| {
+            let envelope = Self::read_envelope(&session.vault_dir)?;
+            let verified = unlock_envelope(&envelope, recovery, true)?;
+            Self::rewrite_master_password(session, &verified, next)
+        })
+    }
+
+    /// 忘记主密码：弹一次新的 Windows Hello 验证后设置新主密码。
+    pub async fn reset_master_password_with_system(
+        &self,
+        owner_window: isize,
+        next: &str,
+    ) -> AppResult<()> {
+        let (system_key_path, session_key) = self.with_session(|session| {
+            Ok((
+                Self::system_key_path(&session.vault_dir),
+                Zeroizing::new(session.key.to_vec()),
+            ))
+        })?;
+        let verified = Zeroizing::new(
+            tauri::async_runtime::spawn_blocking(move || {
+                platform::unlock_with_system(&system_key_path, owner_window)
+            })
+            .await
+            .map_err(|_| AppError::Message("快速解锁任务意外终止".into()))??,
+        );
+        if verified.as_slice() != session_key.as_slice() {
+            return Err(AppError::InvalidCredential);
+        }
+        self.with_session(|session| Self::rewrite_master_password(session, &verified, next))
+    }
+
     pub fn rotate_recovery_key(&self) -> AppResult<String> {
         self.with_session(|session| {
             let mut envelope = Self::read_envelope(&session.vault_dir)?;
@@ -433,6 +486,62 @@ mod tests {
         state.unlock("test-password", false).unwrap();
         assert!(state.auto_backup().unwrap().is_some());
         assert!(state.auto_backup().unwrap().is_none());
+    }
+
+    #[test]
+    fn reset_master_password_with_recovery_rewraps_only_the_password() {
+        let root = tempfile::tempdir().unwrap();
+        let state = AppState::new(
+            root.path().join("config"),
+            root.path().join("default-vault"),
+        );
+        let initialized = state
+            .initialize(root.path().join("vault"), "test-password")
+            .unwrap();
+
+        // 恢复密钥错误：拒绝重置，旧主密码继续有效。
+        assert!(
+            state
+                .reset_master_password_with_recovery("not-the-recovery-key", "next-password")
+                .is_err()
+        );
+        state.lock();
+        assert!(state.unlock("test-password", false).is_ok());
+
+        // 正确的恢复密钥：旧主密码立即失效，新主密码与恢复密钥都可用。
+        state
+            .reset_master_password_with_recovery(&initialized.recovery_key, "next-password")
+            .unwrap();
+        state.lock();
+        assert!(state.unlock("test-password", false).is_err());
+        assert!(state.unlock("next-password", false).is_ok());
+        state.lock();
+        assert!(state.unlock(&initialized.recovery_key, true).is_ok());
+
+        // 新主密码过短仍被拒绝。
+        assert!(
+            state
+                .reset_master_password_with_recovery(&initialized.recovery_key, "short")
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn reset_master_password_requires_an_unlocked_session() {
+        let root = tempfile::tempdir().unwrap();
+        let state = AppState::new(
+            root.path().join("config"),
+            root.path().join("default-vault"),
+        );
+        let initialized = state
+            .initialize(root.path().join("vault"), "test-password")
+            .unwrap();
+        state.lock();
+        assert!(
+            state
+                .reset_master_password_with_recovery(&initialized.recovery_key, "next-password")
+                .is_err()
+        );
     }
 
     #[test]

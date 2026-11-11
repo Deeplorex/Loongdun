@@ -3802,6 +3802,13 @@ button {
   font-size: 12px;
 }
 
+/* 忘记主密码重置模式：提示、按钮组与切换入口独占整行。 */
+.password-change > p,
+.password-change > .settings-actions,
+.password-change > .text-button {
+  grid-column: 1 / -1;
+}
+
 .settings-progress {
   margin-top: 10px;
   color: var(--text-muted);

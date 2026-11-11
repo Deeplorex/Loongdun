@@ -30,6 +30,7 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 
@@ -67,6 +68,7 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 
@@ -93,6 +95,7 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 
@@ -119,6 +122,7 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 
@@ -143,11 +147,73 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("resets a forgotten master password after Windows Hello verification", async () => {
+    const onResetPassword = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SettingsDialog
+        settings={settings}
+        systemUnlockAvailable
+        systemUnlockEnabled
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        onExportBackup={vi.fn()}
+        onToggleSystemUnlock={vi.fn()}
+        onRotateRecovery={vi.fn()}
+        onChangePassword={vi.fn()}
+        onResetPassword={onResetPassword}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "忘记当前主密码？" }));
+    expect(screen.queryByLabelText("当前主密码")).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("新主密码"), "next-password-123");
+    await userEvent.type(screen.getByLabelText("确认新主密码"), "next-password-12");
+    expect(screen.getByRole("button", { name: "通过 Windows Hello 重置" })).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("确认新主密码"), "3");
+    await userEvent.click(screen.getByRole("button", { name: "通过 Windows Hello 重置" }));
+
+    expect(onResetPassword).toHaveBeenCalledWith("next-password-123");
+    expect(await screen.findByText("主密码已重置，请牢记新密码")).toBeInTheDocument();
+  });
+
+  it("resets a forgotten master password with the recovery key when Hello is unavailable", async () => {
+    const onResetPassword = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SettingsDialog
+        settings={settings}
+        systemUnlockAvailable={false}
+        systemUnlockEnabled={false}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+        onExportBackup={vi.fn()}
+        onToggleSystemUnlock={vi.fn()}
+        onRotateRecovery={vi.fn()}
+        onChangePassword={vi.fn()}
+        onResetPassword={onResetPassword}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "忘记当前主密码？" }));
+    expect(
+      screen.queryByRole("button", { name: "通过 Windows Hello 重置" }),
+    ).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("恢复密钥"), "AAAA-BBBB-CCCC-DDDD");
+    await userEvent.type(screen.getByLabelText("新主密码"), "next-password-123");
+    await userEvent.type(screen.getByLabelText("确认新主密码"), "next-password-123");
+    expect(screen.getByRole("button", { name: "通过恢复密钥重置" })).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("恢复密钥"), "-FFFF");
+    await userEvent.click(screen.getByRole("button", { name: "通过恢复密钥重置" }));
+
+    expect(onResetPassword).toHaveBeenCalledWith("next-password-123", "AAAA-BBBB-CCCC-DDDD-FFFF");
+    expect(await screen.findByText("主密码已重置，请牢记新密码")).toBeInTheDocument();
   });
 
   it("opens each legal document without closing the settings dialog", async () => {
@@ -163,6 +229,7 @@ describe("settings dialog", () => {
         onToggleSystemUnlock={vi.fn()}
         onRotateRecovery={vi.fn()}
         onChangePassword={vi.fn()}
+        onResetPassword={vi.fn()}
       />,
     );
 

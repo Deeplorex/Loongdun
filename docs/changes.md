@@ -1,5 +1,13 @@
 # Product changes
 
+## 2026-11-11 — 忘记主密码时可用 Hello 或恢复密钥重置
+
+- Type: `requirement`
+- 背景：`change_master_password` 强制校验旧主密码（`unlock_envelope` 只走密码分支），忘记主密码后即使能用 Windows Hello 或恢复密钥解锁，也无法再设置新主密码，主密码从此永久不可用。
+- 新增两条重置命令：`reset_master_password_with_system`（弹一次新的 Windows Hello 验证，解出库密钥并与当前会话比对一致即授权）与 `reset_master_password_with_recovery`（输入恢复密钥走同样比对）。授权通过后仅把库密钥重新包进新主密码（`envelope.password`），恢复密钥与凭证数据不变；旧主密码立即失效。新密码仍要求至少 10 个字符。共用逻辑在 `vault.rs` 的 `rewrite_master_password`（校验长度、比对授权密钥、重写信封），Hello 路径与 `enable_system_unlock` 相同模式：先在锁内取快照、验证在锁外的 `spawn_blocking` 中进行。
+- 前端：设置“修改主密码”区块新增“忘记当前主密码？”切换。重置模式下隐藏“当前主密码”，改为“通过 Windows Hello 重置”（快速解锁已启用时）与“通过恢复密钥重置”（输入恢复密钥，两条路径并存互为兜底）两个动作；确认不一致、密码过短或恢复密钥不足 20 字符时按钮禁用。`styles.css` 为重置模式的整行元素（提示、按钮组、切换入口）加 `grid-column: 1 / -1`。`i18n.tsx` 补中英词条；`demoApi.ts` 同步两个新 API。安全语义：重置必须重新出示 Windows Hello 或恢复密钥之一，仅“已解锁”不再足以改写主密码信封。
+- Tests: `src-tauri/src/vault.rs` 新增 `reset_master_password_with_recovery_rewraps_only_the_password`（错误恢复密钥拒绝且旧密码仍有效；正确恢复密钥重置后旧密码失效、新密码与恢复密钥均可解锁；新密码过短拒绝）与 `reset_master_password_requires_an_unlocked_session`（锁定态拒绝）。`src/components/SettingsDialog.test.tsx` 新增 Hello 重置路径（确认不一致禁用、成功提示）与恢复密钥路径（Hello 不可用时入口隐藏、密钥不足 20 字符禁用、回调带密钥）。`cargo test vault::`、`vitest run src/components/SettingsDialog.test.tsx src/App.test.tsx src/lib/i18n.test.tsx`、`pnpm typecheck`、`contract:check`、`format:check`、`format:rust:check`、`lint:rust` 通过。
+
 ## 2026-11-10 — 图谱不再把平台当作实体节点
 
 - Type: `bug`

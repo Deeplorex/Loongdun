@@ -47,6 +47,10 @@ const tauriApi = {
   lockVault: () => invoke<VaultStatus>("lock_vault"),
   changeMasterPassword: (currentPassword: string, nextPassword: string) =>
     invoke<void>("change_master_password", { currentPassword, nextPassword }),
+  resetMasterPasswordWithSystem: (nextPassword: string) =>
+    invoke<void>("reset_master_password_with_system", { nextPassword }),
+  resetMasterPasswordWithRecovery: (recoveryKey: string, nextPassword: string) =>
+    invoke<void>("reset_master_password_with_recovery", { recoveryKey, nextPassword }),
   rotateRecoveryKey: () => invoke<string>("rotate_recovery_key"),
   generatePassword: (options: PasswordGeneratorOptions) =>
     invoke<GeneratedPassword>("generate_password", { options }),

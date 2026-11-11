@@ -77,6 +77,29 @@ pub async fn change_master_password(
     command(state.change_master_password(&current_password, &next_password))
 }
 
+#[tauri::command(rename_all = "camelCase")]
+pub async fn reset_master_password_with_recovery(
+    state: State<'_, AppState>,
+    recovery_key: String,
+    next_password: String,
+) -> CommandResult<()> {
+    command(state.reset_master_password_with_recovery(&recovery_key, &next_password))
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub async fn reset_master_password_with_system(
+    window: tauri::Window,
+    state: State<'_, AppState>,
+    next_password: String,
+) -> CommandResult<()> {
+    let owner_window = command(platform::owner_window_handle(&window))?;
+    command(
+        state
+            .reset_master_password_with_system(owner_window, &next_password)
+            .await,
+    )
+}
+
 #[tauri::command]
 pub async fn rotate_recovery_key(state: State<'_, AppState>) -> CommandResult<String> {
     command(state.rotate_recovery_key())

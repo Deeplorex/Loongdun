@@ -383,6 +383,8 @@ export function createDemoApi() {
       return clone(status);
     },
     changeMasterPassword: async () => undefined,
+    resetMasterPasswordWithSystem: async () => undefined,
+    resetMasterPasswordWithRecovery: async () => undefined,
     rotateRecoveryKey: async () => "LOONGDUN-DEMO-NEW-RECOVERY-KEY",
     generatePassword: async (options: PasswordGeneratorOptions) => demoGeneratePassword(options),
     listAssets: async (filter: AssetQuery) => {

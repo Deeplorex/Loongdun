@@ -29,6 +29,7 @@ interface SettingsDialogProps {
   onToggleSystemUnlock: (enabled: boolean) => Promise<void>;
   onRotateRecovery: () => Promise<void>;
   onChangePassword: (currentPassword: string, nextPassword: string) => Promise<void>;
+  onResetPassword: (nextPassword: string, recoveryKey?: string) => Promise<void>;
 }
 
 export function SettingsDialog({
@@ -41,6 +42,7 @@ export function SettingsDialog({
   onToggleSystemUnlock,
   onRotateRecovery,
   onChangePassword,
+  onResetPassword,
 }: SettingsDialogProps) {
   const { t } = useI18n();
   const titleId = useId();
@@ -53,6 +55,8 @@ export function SettingsDialog({
   const [currentPassword, setCurrentPassword] = useState("");
   const [nextPassword, setNextPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [resetRecoveryKey, setResetRecoveryKey] = useState("");
   const [legalDocument, setLegalDocument] = useState<LegalDocumentId | null>(null);
 
   useEffect(() => {
@@ -362,16 +366,38 @@ export function SettingsDialog({
                 </div>
               </div>
               <div className="password-change">
-                <label>
-                  <span>{t("当前主密码")}</span>
-                  <input
-                    name="current-password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={currentPassword}
-                    onChange={(event) => setCurrentPassword(event.target.value)}
-                  />
-                </label>
+                {forgotPassword && (
+                  <p>
+                    {t(
+                      "忘记主密码时，用 Windows Hello 或恢复密钥重新验证即可设置新主密码；凭证内容与恢复密钥保持不变。",
+                    )}
+                  </p>
+                )}
+                {!forgotPassword && (
+                  <label>
+                    <span>{t("当前主密码")}</span>
+                    <input
+                      name="current-password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(event) => setCurrentPassword(event.target.value)}
+                    />
+                  </label>
+                )}
+                {forgotPassword && (
+                  <label>
+                    <span>{t("恢复密钥")}</span>
+                    <input
+                      name="recovery-key"
+                      type="password"
+                      autoComplete="off"
+                      value={resetRecoveryKey}
+                      onChange={(event) => setResetRecoveryKey(event.target.value)}
+                      placeholder={t("无法使用 Windows Hello 时必填")}
+                    />
+                  </label>
+                )}
                 <label>
                   <span>{t("新主密码")}</span>
                   <input
@@ -393,26 +419,93 @@ export function SettingsDialog({
                     onChange={(event) => setConfirmPassword(event.target.value)}
                   />
                 </label>
+                {!forgotPassword && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={
+                      busy ||
+                      nextPassword.length < 10 ||
+                      nextPassword !== confirmPassword ||
+                      !currentPassword
+                    }
+                    onClick={() =>
+                      perform(async () => {
+                        await onChangePassword(currentPassword, nextPassword);
+                        setCurrentPassword("");
+                        setNextPassword("");
+                        setConfirmPassword("");
+                      }, t("主密码已修改"))
+                    }
+                  >
+                    <KeyRound size={16} />
+                    {t("修改主密码")}
+                  </button>
+                )}
+                {forgotPassword && (
+                  <div className="settings-actions">
+                    {systemUnlockEnabled && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={
+                          busy || nextPassword.length < 10 || nextPassword !== confirmPassword
+                        }
+                        onClick={() =>
+                          perform(
+                            async () => {
+                              await onResetPassword(nextPassword);
+                              setNextPassword("");
+                              setConfirmPassword("");
+                            },
+                            t("主密码已重置，请牢记新密码"),
+                            "hello",
+                          )
+                        }
+                      >
+                        {busyAction === "hello" ? (
+                          <LoaderCircle className="spin" size={16} />
+                        ) : (
+                          <Fingerprint size={16} />
+                        )}
+                        {busyAction === "hello"
+                          ? t("等待 Windows Hello…")
+                          : t("通过 Windows Hello 重置")}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      disabled={
+                        busy ||
+                        nextPassword.length < 10 ||
+                        nextPassword !== confirmPassword ||
+                        resetRecoveryKey.trim().length < 20
+                      }
+                      onClick={() =>
+                        perform(async () => {
+                          await onResetPassword(nextPassword, resetRecoveryKey.trim());
+                          setResetRecoveryKey("");
+                          setNextPassword("");
+                          setConfirmPassword("");
+                        }, t("主密码已重置，请牢记新密码"))
+                      }
+                    >
+                      <KeyRound size={16} />
+                      {t("通过恢复密钥重置")}
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
-                  className="secondary-button"
-                  disabled={
-                    busy ||
-                    nextPassword.length < 10 ||
-                    nextPassword !== confirmPassword ||
-                    !currentPassword
-                  }
-                  onClick={() =>
-                    perform(async () => {
-                      await onChangePassword(currentPassword, nextPassword);
-                      setCurrentPassword("");
-                      setNextPassword("");
-                      setConfirmPassword("");
-                    }, t("主密码已修改"))
-                  }
+                  className="text-button"
+                  disabled={busy}
+                  onClick={() => {
+                    setForgotPassword((value) => !value);
+                    setResetRecoveryKey("");
+                  }}
                 >
-                  <KeyRound size={16} />
-                  {t("修改主密码")}
+                  {forgotPassword ? t("返回常规修改") : t("忘记当前主密码？")}
                 </button>
               </div>
             </section>

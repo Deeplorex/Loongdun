@@ -93,6 +93,8 @@ pub fn run() {
             commands::disable_system_unlock,
             commands::lock_vault,
             commands::change_master_password,
+            commands::reset_master_password_with_recovery,
+            commands::reset_master_password_with_system,
             commands::rotate_recovery_key,
             commands::generate_password,
             commands::list_assets,

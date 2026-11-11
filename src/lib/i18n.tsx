@@ -406,6 +406,14 @@ const english: Record<string, string> = {
   确认新主密码: "Confirm new master password",
   "至少 10 位": "At least 10 characters",
   主密码已修改: "Master password changed",
+  "忘记当前主密码？": "Forgot the current master password?",
+  返回常规修改: "Back to regular change",
+  "忘记主密码时，用 Windows Hello 或恢复密钥重新验证即可设置新主密码；凭证内容与恢复密钥保持不变。":
+    "If you forgot the master password, verify again with Windows Hello or the recovery key to set a new one. Credentials and the recovery key stay unchanged.",
+  "无法使用 Windows Hello 时必填": "Required when Windows Hello is unavailable",
+  "通过 Windows Hello 重置": "Reset with Windows Hello",
+  通过恢复密钥重置: "Reset with recovery key",
+  "主密码已重置，请牢记新密码": "Master password reset. Remember the new password.",
   "备份文件已加密，恢复时需要主密码或恢复密钥。":
     "Backups are encrypted and require the master password or recovery key to restore.",
   "导出 .loongdun-backup": "Export .loongdun-backup",
