@@ -23,3 +23,7 @@ system-key.bin
 Thumbs.db
 .zcode/plans/
 .zcode/workflow-drafts/
+.workbuddy/
+
+# 运营物料（公众号稿件、配图、渲染源文件）不入库
+docs/marketing/

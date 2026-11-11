@@ -1576,6 +1576,97 @@ mod migration_tests {
     }
 
     #[test]
+    fn graph_data_includes_every_project_component_and_asset() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("vault.db");
+        let mut connection =
+            initialize_database(&path, &[8_u8; 32], "graph-completeness-vault").unwrap();
+        let standalone = save_asset(
+            &mut connection,
+            AssetInput {
+                id: None,
+                kind: AssetKind::Recovery,
+                title: "独立恢复码".into(),
+                platform: String::new(),
+                username_hint: String::new(),
+                environment: String::new(),
+                notes: String::new(),
+                favorite: false,
+                expires_at: None,
+                parent_asset_id: None,
+                folder_id: None,
+                tags: vec![],
+                fields: vec![],
+            },
+        )
+        .unwrap();
+        let project = save_project(
+            &connection,
+            ProjectInput {
+                logo: String::new(),
+                id: None,
+                name: "完整产品".into(),
+                description: String::new(),
+                repo_path: String::new(),
+                favorite: false,
+            },
+        )
+        .unwrap();
+        let service = save_service(
+            &connection,
+            ServiceInput {
+                id: None,
+                project_id: project.id.clone(),
+                name: "问答服务".into(),
+                description: String::new(),
+            },
+        )
+        .unwrap();
+        let environment = save_environment(
+            &connection,
+            EnvironmentInput {
+                id: None,
+                project_id: project.id.clone(),
+                service_id: Some(service.id.clone()),
+                name: "生产".into(),
+                kind: "prod".into(),
+            },
+        )
+        .unwrap();
+        let empty_project = save_project(
+            &connection,
+            ProjectInput {
+                logo: String::new(),
+                id: None,
+                name: "空产品".into(),
+                description: String::new(),
+                repo_path: String::new(),
+                favorite: false,
+            },
+        )
+        .unwrap();
+
+        let graph = graph_data(&connection).unwrap();
+        let ids_of = |node_type: &str| {
+            graph
+                .nodes
+                .iter()
+                .filter(|node| node.node_type == node_type)
+                .map(|node| node.id.clone())
+                .collect::<Vec<_>>()
+        };
+        // 所有凭证都在图谱上：包括没有平台、没有关系、没有使用绑定的孤立凭证。
+        assert!(ids_of("asset").contains(&standalone.summary.id));
+        // 所有产品都在图谱上：包括没有任何产品组成、环境或绑定的空产品。
+        let project_nodes = ids_of("project");
+        assert!(project_nodes.contains(&project.id));
+        assert!(project_nodes.contains(&empty_project.id));
+        // 产品组成与环境节点不缺。
+        assert!(ids_of("service").contains(&service.id));
+        assert!(ids_of("environment").contains(&environment.id));
+    }
+
+    #[test]
     fn folders_and_product_dependencies_round_trip() {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("vault.db");
