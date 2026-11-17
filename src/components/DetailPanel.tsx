@@ -31,6 +31,7 @@ import type {
   UsageBindingInput,
 } from "../types";
 import { PlatformLogo } from "./PlatformLogo";
+import { SuggestSelect } from "./SuggestSelect";
 
 const ASSET_RELATION_LABELS: Record<AssetRelationType, string> = {
   used_to_register: "用于注册",
@@ -104,6 +105,23 @@ export function DetailPanel({
   const [relationNotes, setRelationNotes] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const revealTimers = useRef(new Map<string, number>());
+  const bindingOptions = projects.flatMap((project) => [
+    { key: `project:${project.id}`, name: `${project.name} (${t("产品")})` },
+    ...project.services.map((service) => ({
+      key: `service:${service.id}`,
+      name: `${project.name} / ${service.name} (${t("产品组成")})`,
+    })),
+    ...project.environments.map((environment) => ({
+      key: `environment:${environment.id}`,
+      name: [
+        project.name,
+        project.services.find((service) => service.id === environment.serviceId)?.name,
+        `${environment.name} (${formatEnvironment(environment.kind, language)})`,
+      ]
+        .filter(Boolean)
+        .join(" / "),
+    })),
+  ]);
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -481,31 +499,14 @@ export function DetailPanel({
             </div>
             {bindingOpen && (
               <div className="binding-form">
-                <select
+                <SuggestSelect
                   aria-label={t("选择使用方")}
                   value={bindingTarget}
-                  onChange={(event) => setBindingTarget(event.target.value)}
+                  onChange={setBindingTarget}
+                  options={bindingOptions}
+                  placeholder={t("选择产品、产品组成或环境…")}
                   name="binding-target"
-                >
-                  <option value="">{t("选择产品、产品组成或环境…")}</option>
-                  {projects.map((project) => (
-                    <optgroup key={project.id} label={project.name}>
-                      <option value={`project:${project.id}`}>
-                        {project.name} ({t("产品")})
-                      </option>
-                      {project.services.map((service) => (
-                        <option key={service.id} value={`service:${service.id}`}>
-                          ↳ {service.name} ({t("产品组成")})
-                        </option>
-                      ))}
-                      {project.environments.map((environment) => (
-                        <option key={environment.id} value={`environment:${environment.id}`}>
-                          ↳ {environment.name} ({formatEnvironment(environment.kind, language)})
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                />
                 <input
                   aria-label={t("用途")}
                   value={bindingPurpose}
@@ -602,21 +603,20 @@ export function DetailPanel({
                   <option value="outgoing">{t("当前凭证 → 其他凭证")}</option>
                   <option value="incoming">{t("其他凭证 → 当前凭证")}</option>
                 </select>
-                <select
+                <SuggestSelect
                   aria-label={t("选择另一条凭证")}
                   value={relationTarget}
-                  onChange={(event) => setRelationTarget(event.target.value)}
-                  name="relation-target"
-                >
-                  <option value="">{t("选择另一条凭证")}</option>
-                  {assets
+                  onChange={setRelationTarget}
+                  options={assets
                     .filter((asset) => asset.id !== summary.id && !asset.deletedAt)
-                    .map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.title} · {t(KIND_LABELS[asset.kind])}
-                      </option>
-                    ))}
-                </select>
+                    .map((asset) => ({
+                      key: asset.id,
+                      name: asset.title,
+                      hint: t(KIND_LABELS[asset.kind]),
+                    }))}
+                  placeholder={t("选择另一条凭证")}
+                  name="relation-target"
+                />
                 <select
                   aria-label={t("关系类型")}
                   value={relationType}

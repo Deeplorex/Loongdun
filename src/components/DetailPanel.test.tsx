@@ -251,9 +251,10 @@ describe("asset detail", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "关系方向" }), {
       target: { value: "incoming" },
     });
-    fireEvent.change(screen.getByRole("combobox", { name: "选择另一条凭证" }), {
-      target: { value: registrationEmail.id },
-    });
+    const relationTargetInput = screen.getByRole("combobox", { name: "选择另一条凭证" });
+    fireEvent.focus(relationTargetInput);
+    fireEvent.change(relationTargetInput, { target: { value: "注册" } });
+    fireEvent.click(screen.getByRole("option", { name: /AAA 注册邮箱/ }));
     fireEvent.change(screen.getByRole("combobox", { name: "关系类型" }), {
       target: { value: "used_to_recover" },
     });

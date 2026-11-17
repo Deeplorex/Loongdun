@@ -1,5 +1,14 @@
 # Product changes
 
+## 2026-11-18 — 建立关联的选择器支持输入联想筛选
+
+- Type: `requirement`
+- 背景：建立关联时选择另一条凭证/使用位置均为原生 `<select>`，凭证与产品一多就难定位。编辑器的关联区块此前靠一个独立的「搜索凭证或使用位置」输入框先过滤再下拉，输入与选择割裂；详情面板的「添加关联」「添加凭证关系」则完全没有筛选。
+- 新增 `src/components/SuggestSelect.tsx`（无第三方依赖）：ARIA combobox 模式的输入联想组件。聚焦展开全部选项并高亮当前选中项，输入按名称/提示子串过滤（大小写不敏感，中英文等同凭证搜索的子串语义）；↑/↓ 移动高亮、Enter 选中、Escape 关闭还原；点击选项即选中。失焦时文本恰好等于某选项名则选中，否则还原为已选状态——未选择时输入值为空，`required` 原生校验照常触发，编辑器 `onInvalidCapture` 自动展开关联区块的行为不变。无匹配显示禁用的「无匹配」行。
+- 接线：`AssetLinksEditor.tsx` 的上级账号、关联凭证、使用位置三处选择器换成 SuggestSelect（凭证选项带平台提示，使用位置沿用 `kind:id` 值与现有保存逻辑），移除全局搜索框及 `query` 过滤（被逐字段联想取代）；`DetailPanel.tsx` 的「选择另一条凭证」（提示为凭证类型）与「选择使用方」（产品/组成/环境拍平为完整路径名）两处替换，optgroup 层级并入名称，`createBinding`/`createAssetRelation` 逻辑不变。关系方向、关系类型选项少，保持原生 `<select>`。
+- 样式与词条：`styles.css` 新增 `.suggest` 浮层（绝对定位、限高 240px 滚动、`--forest-pale` 高亮、暗色主题变量自适应）；`i18n.tsx` 新增「无匹配」英文词条并移除不再使用的「搜索凭证或使用位置」。
+- Tests: 新增 `src/components/SuggestSelect.test.tsx`（输入过滤与点击选中、提示字段匹配、键盘选中、Escape 还原、失焦未匹配文本还原为空以保持 required、失焦精确名称直接选中）；`AssetLinksEditor.test.tsx` 改为在使用位置输入「生产」后点选联想项，保存 payload 断言不变，已有关联加载断言改为输入框显示选项名；`DetailPanel.test.tsx` 凭证关系流程改为联想交互。`corepack pnpm vitest run`（SuggestSelect/AssetLinksEditor/DetailPanel/AssetEditor）与 `corepack pnpm tsc -b` 通过。
+
 ## 2026-11-11 — 忘记主密码时可用 Hello 或恢复密钥重置
 
 - Type: `requirement`

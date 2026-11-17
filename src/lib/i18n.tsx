@@ -59,7 +59,7 @@ const english: Record<string, string> = {
   数据库: "Database",
   恢复凭证: "Recovery credential",
   密钥文件: "Key file",
-  搜索凭证或使用位置: "Search credentials or usage locations",
+  无匹配: "No matches",
   "所选凭证 → 当前凭证": "Selected credential → this credential",
   "当前凭证 → 所选凭证": "This credential → selected credential",
   请选择凭证: "Choose a credential",

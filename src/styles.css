@@ -517,6 +517,61 @@ textarea::placeholder {
   color: color-mix(in srgb, var(--text-muted), transparent 25%);
 }
 
+.suggest {
+  position: relative;
+}
+
+.suggest__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow-soft);
+}
+
+.suggest__option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.suggest__option span {
+  min-width: 0;
+}
+
+.suggest__option small {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.suggest__option--active {
+  background: var(--forest-pale);
+  color: var(--ink);
+}
+
+.suggest__option[aria-selected="true"] {
+  font-weight: 600;
+}
+
+.suggest__option--empty {
+  color: var(--text-muted);
+  cursor: default;
+}
+
 .input-with-action {
   position: relative;
 }

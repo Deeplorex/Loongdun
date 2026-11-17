@@ -41,10 +41,12 @@ describe("credential form relationships", () => {
     await userEvent.click(screen.getByRole("button", { name: "添加关联凭证" }));
     expect(screen.getByText("注册邮箱 → 用于注册 → 小程序")).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "添加使用位置" }));
-    await userEvent.type(screen.getByLabelText("搜索凭证或使用位置"), "生产");
+    const usage = screen.getByLabelText("使用位置 1");
+    await userEvent.click(usage);
+    await userEvent.type(usage, "生产");
     expect(screen.getByRole("option", { name: "AAA / 国内版小程序 / 生产" })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: "AAA" })).not.toBeInTheDocument();
-    await userEvent.selectOptions(screen.getByLabelText("使用位置 1"), "environment:e1");
+    await userEvent.click(screen.getByRole("option", { name: "AAA / 国内版小程序 / 生产" }));
     await userEvent.click(screen.getByRole("button", { name: "保存凭证" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
     expect(onSave.mock.calls[0][0].links).toMatchObject({
@@ -93,7 +95,7 @@ describe("credential form relationships", () => {
       />,
     );
     await userEvent.click(screen.getByText(/^关联 ·/));
-    expect(screen.getByLabelText("关联凭证 1")).toHaveValue("email");
+    expect(screen.getByLabelText("关联凭证 1")).toHaveValue("注册邮箱");
     await userEvent.click(screen.getByRole("button", { name: "移除关联" }));
     await userEvent.click(screen.getByRole("button", { name: "移除使用位置" }));
     await userEvent.click(screen.getByRole("button", { name: "取消" }));

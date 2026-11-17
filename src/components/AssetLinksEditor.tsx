@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import type { AssetInput, AssetRelationType, AssetSummary, ConsumerKind, Project } from "../types";
+import { SuggestSelect } from "./SuggestSelect";
 
 const RELATIONS: Record<AssetRelationType, string> = {
   used_to_register: "用于注册",
@@ -26,7 +27,7 @@ export function AssetLinksEditor({
   disabled: boolean;
 }) {
   const { t } = useI18n();
-  const [query, setQuery] = useState("");
+  const parentId = useId();
   const links = draft.links ?? { relations: [], bindings: [] };
   const [relationKeys, setRelationKeys] = useState(() =>
     links.relations.map(() => crypto.randomUUID()),
@@ -36,8 +37,11 @@ export function AssetLinksEditor({
   );
   const self = draft.id || "";
   const candidates = assets.filter((asset) => asset.id !== draft.id && !asset.deletedAt);
-  const matches = (name: string) =>
-    name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
+  const assetSuggests = candidates.map((asset) => ({
+    key: asset.id,
+    name: asset.title,
+    hint: asset.platform,
+  }));
   const options = projects.flatMap((project) => [
     { key: `project:${project.id}`, name: project.name, environment: "" },
     ...project.services.map((service) => ({
@@ -57,10 +61,6 @@ export function AssetLinksEditor({
       environment: environment.kind,
     })),
   ]);
-  const assetOptions = (selected: string) =>
-    candidates.filter(
-      (asset) => asset.id === selected || matches(`${asset.title} ${asset.platform}`),
-    );
   const changeRelations = (relations: typeof links.relations, removed?: number) => {
     setRelationKeys((keys) =>
       removed === undefined
@@ -99,23 +99,15 @@ export function AssetLinksEditor({
         {links.relations.length + links.bindings.length + (draft.parentAssetId ? 1 : 0)}
       </summary>
       <fieldset disabled={disabled} className="editor-links__body">
-        <label className="field-group">
-          <span>{t("搜索凭证或使用位置")}</span>
-          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
-        </label>
-        <label className="field-group">
+        <label className="field-group" htmlFor={parentId}>
           <span>{t("上级账号 / 凭证")}</span>
-          <select
+          <SuggestSelect
+            id={parentId}
             value={draft.parentAssetId || ""}
-            onChange={(event) => onChange({ parentAssetId: event.target.value || null })}
-          >
-            <option value="">{t("无")}</option>
-            {assetOptions(draft.parentAssetId || "").map((asset) => (
-              <option key={asset.id} value={asset.id}>
-                {asset.title}
-              </option>
-            ))}
-          </select>
+            onChange={(key) => onChange({ parentAssetId: key || null })}
+            options={assetSuggests}
+            placeholder={t("无")}
+          />
         </label>
         <h4>{t("关联凭证")}</h4>
         {links.relations.map((relation, index) => {
@@ -131,28 +123,20 @@ export function AssetLinksEditor({
           return (
             <div className="editor-links__row" key={relationKeys[index]}>
               <div className="form-grid form-grid--two">
-                <label>
+                <label htmlFor={relationKeys[index]}>
                   <span>
                     {t("关联凭证")} {index + 1}
                   </span>
-                  <select
+                  <SuggestSelect
+                    id={relationKeys[index]}
                     required
                     value={related}
-                    onChange={(event) =>
-                      update(
-                        incoming
-                          ? { sourceAssetId: event.target.value }
-                          : { targetAssetId: event.target.value },
-                      )
+                    onChange={(key) =>
+                      update(incoming ? { sourceAssetId: key } : { targetAssetId: key })
                     }
-                  >
-                    <option value="">{t("请选择凭证")}</option>
-                    {assetOptions(related).map((asset) => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.title}
-                      </option>
-                    ))}
-                  </select>
+                    options={assetSuggests}
+                    placeholder={t("请选择凭证")}
+                  />
                 </label>
                 <label>
                   <span>{t("关系方向")}</span>
@@ -243,33 +227,26 @@ export function AssetLinksEditor({
           return (
             <div className="editor-links__row" key={bindingKeys[index]}>
               <div className="form-grid form-grid--two">
-                <label className="span-two">
+                <label className="span-two" htmlFor={bindingKeys[index]}>
                   <span>
                     {t("使用位置")} {index + 1}
                   </span>
-                  <select
+                  <SuggestSelect
+                    id={bindingKeys[index]}
                     required
                     value={binding.consumerId ? selected : ""}
-                    onChange={(event) => {
-                      const [consumerKind, consumerId] = event.target.value.split(":");
+                    onChange={(key) => {
+                      const [consumerKind, consumerId] = key.split(":");
                       update({
                         consumerKind: consumerKind as ConsumerKind,
                         consumerId,
                         environment:
-                          options.find((option) => option.key === event.target.value)
-                            ?.environment || "",
+                          options.find((option) => option.key === key)?.environment || "",
                       });
                     }}
-                  >
-                    <option value="">{t("请选择使用位置")}</option>
-                    {options
-                      .filter((option) => option.key === selected || matches(option.name))
-                      .map((option) => (
-                        <option key={option.key} value={option.key}>
-                          {option.name}
-                        </option>
-                      ))}
-                  </select>
+                    options={options}
+                    placeholder={t("请选择使用位置")}
+                  />
                 </label>
                 <label>
                   <span>{t("用途")}</span>
